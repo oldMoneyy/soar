@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>MiniCPM-SALA × RTX 5090 — 每个操作的精确耗时分析</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0e1a;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;padding:20px;line-height:1.6}
+h1{text-align:center;color:#7ecfff;font-size:20px;margin-bottom:4px}
+h2{text-align:center;color:#888;font-size:13px;font-weight:normal;margin-bottom:20px}
+.section{margin:30px auto;max-width:1300px}
+.stitle{color:#7ecfff;font-size:15px;margin-bottom:10px;border-bottom:1px solid #2a3050;padding-bottom:5px}
+.card{background:#111827;border:1px solid #2a3050;border-radius:8px;padding:16px;margin-bottom:15px}
+.card h3{color:#7ecfff;font-size:14px;margin-bottom:10px}
+.explain{color:#bbb;font-size:13px;line-height:1.7;margin-bottom:12px}
+.explain b{color:#ffa657}
+.explain .hl{color:#7ecfff;font-weight:600}
+.explain code{background:#1a2040;padding:2px 6px;border-radius:3px;font-family:'JetBrains Mono',Consolas,monospace;font-size:12px;color:#c9d1d9}
+.formula{background:#0d1117;border:1px solid #1a2040;border-radius:6px;padding:12px 16px;margin:10px 0;font-family:'JetBrains Mono',Consolas,monospace;font-size:12px;color:#c9d1d9;line-height:1.8;overflow-x:auto}
+.formula .cmt{color:#6a737d}
+.formula .val{color:#79c0ff}
+.formula .res{color:#7ee787;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:10px 0}
+th{background:#1a2040;color:#7ecfff;padding:8px 10px;text-align:right;border:1px solid #2a3050;position:sticky;top:0}
+td{padding:6px 10px;text-align:right;border:1px solid #1e2640}
+td:first-child,th:first-child{text-align:left}
+tr:hover td{background:rgba(126,207,255,0.04)}
+tr.total-row td{background:#1a2040;font-weight:700;color:#7ecfff;border-top:2px solid #3a4a70}
+tr.subtotal td{background:#141e30;font-weight:600;color:#aaa}
+.bar{display:inline-block;height:12px;border-radius:2px;vertical-align:middle;margin-right:4px}
+.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.tag-mem{background:#2a1a1a;color:#ff7b72}
+.tag-comp{background:#1a2a1a;color:#7ee787}
+.tag-tiny{background:#1a1a2a;color:#888}
+.gpu-spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:10px 0}
+.gpu-spec .item{background:#0d1117;border:1px solid #1e2640;border-radius:6px;padding:10px}
+.gpu-spec .item .label{font-size:11px;color:#888}
+.gpu-spec .item .val{font-size:18px;color:#7ecfff;font-weight:700}
+.gpu-spec .item .unit{font-size:11px;color:#aaa}
+.insight{background:#1a1a00;border:1px solid #4a4a00;border-radius:6px;padding:12px 16px;margin:12px 0;font-size:13px;color:#ffd700}
+.insight::before{content:'💡 ';font-size:14px}
+.warning{background:#2a1a1a;border:1px solid #4a2a2a;border-radius:6px;padding:12px 16px;margin:12px 0;font-size:13px;color:#ff7b72}
+.warning::before{content:'⚠️ ';font-size:14px}
+.tabs{display:flex;gap:2px;margin-bottom:0}
+.tab{padding:8px 16px;background:#0d1117;border:1px solid #2a3050;border-bottom:none;border-radius:6px 6px 0 0;cursor:pointer;font-size:12px;color:#888}
+.tab.active{background:#111827;color:#7ecfff;font-weight:600}
+.tab-content{display:none}
+.tab-content.active{display:block}
+select{background:#0d1117;color:#7ecfff;border:1px solid #3a4a70;padding:4px 8px;border-radius:4px;font-size:12px}
+.waterfall{margin:10px 0}
+.wf-row{display:flex;align-items:center;margin-bottom:1px}
+.wf-label{width:200px;font-size:11px;color:#aaa;text-align:right;padding-right:8px;flex-shrink:0}
+.wf-bar-area{flex:1;position:relative;height:16px}
+.wf-bar{position:absolute;height:14px;border-radius:2px;top:1px;font-size:9px;display:flex;align-items:center;padding:0 4px;color:#fff;white-space:nowrap;min-width:1px}
+.wf-time{width:80px;font-size:10px;color:#888;text-align:left;padding-left:6px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<h1>MiniCPM-SALA × RTX 5090 — 每一步操作的精确耗时分析</h1>
+<h2>理解瓶颈：为什么 Decode 慢？优化什么最有效？</h2>
+
+<div class="section">
+<div class="stitle">0. 你的 GPU 参数 & 关键概念</div>
+
+<div class="card">
+<div class="gpu-spec">
+  <div class="item"><div class="label">GPU</div><div class="val">RTX 5090</div><div class="unit">Blackwell, GDDR7</div></div>
+  <div class="item"><div class="label">显存</div><div class="val">32 GB</div><div class="unit">GDDR7</div></div>
+  <div class="item"><div class="label">显存带宽</div><div class="val">1,455 GB/s</div><div class="unit">你的实测值 (理论 ~1,792)</div></div>
+  <div class="item"><div class="label">FP16 Tensor Core</div><div class="val">~209 TFLOPS</div><div class="unit">密集计算 (FP32: 105 TFLOPS)</div></div>
+  <div class="item"><div class="label">算力/带宽比</div><div class="val">143.6</div><div class="unit">FLOP/Byte — 关键数字!</div></div>
+</div>
+
+<div class="explain" style="margin-top:12px">
+<b>三个你必须理解的概念：</b><br><br>
+
+<b>① 算术强度 (Arithmetic Intensity)</b> = 计算量 ÷ 访存量 = FLOPs ÷ Bytes<br>
+每读 1 字节数据，做多少次浮点运算。这个数字决定了操作的瓶颈在哪。<br><br>
+
+<b>② GPU 的平衡点 (Balance Point)</b> = 算力 ÷ 带宽 = 209 TFLOPS ÷ 1455 GB/s = <span class="hl">143.6 FLOP/Byte</span><br>
+如果一个操作的算术强度 < 143.6，那它是<b>访存瓶颈 (Memory-Bound)</b>：GPU 算得快，但数据喂不过来，计算单元空转等数据。<br>
+如果 > 143.6，那它是<b>计算瓶颈 (Compute-Bound)</b>：数据到了，但算不过来。<br><br>
+
+<b>③ GEMM vs GEMV</b><br>
+<code>GEMM</code>: 矩阵 × 矩阵 (General Matrix Multiply) — <b>Prefill</b> 时用，多个 token 同时算<br>
+ &nbsp; → 算术强度 ≈ seq_len（可以很高），通常 <span class="hl">计算瓶颈</span><br>
+<code>GEMV</code>: 矩阵 × 向量 (General Matrix-Vector) — <b>Decode</b> 时用，1 个 token<br>
+ &nbsp; → 算术强度 = 2MN ÷ (MN×2 bytes) = <span class="hl">1 FLOP/Byte</span> ≪ 143.6<br>
+ &nbsp; → 极端<b>访存瓶颈</b>！GPU 99% 时间在等数据从显存搬到计算单元
+</div>
+
+<div class="formula">
+<span class="cmt">// GEMV 的时间计算方式（Decode 阶段每一步都是这样算的）</span>
+时间 = max(计算时间, 访存时间)
+     = max(2×M×N / 209e12,  M×N×2 / 1455e9)
+
+<span class="cmt">// 例: lightning qkv_proj [4096×12288], bf16</span>
+计算时间 = 2 × 4096 × 12288 / 209e12 = <span class="val">0.48 μs</span>
+访存时间 = 4096 × 12288 × 2 / 1455e9 = <span class="val">69.2 μs</span>  <span class="cmt">← 慢 144 倍！</span>
+实际时间 ≈ <span class="res">69.2 μs</span> (完全由访存决定)
+</div>
+
+<div class="insight">
+Decode 阶段，每生成 1 个 token，GPU 需要把<b>整个模型的权重</b>从显存读一遍。<br>
+9.48B 参数 × 2 字节 = 18.95 GB。读一遍需要 18.95 GB ÷ 1455 GB/s = <b>13.0 ms</b>。<br>
+这就是你 Decode 速度的<b>理论上限</b>：不可能比 13ms/token 更快（bf16 下）。<br>
+W4A16 量化后：4.74 GB ÷ 1455 GB/s = <b>3.3 ms/token</b> — 快 4 倍！
+</div>
+</div>
+</div>
+
+<div class="section">
+<div class="stitle">1. Decode 阶段 — 生成 1 个 Token 的逐操作耗时</div>
+
+<div class="card">
+<div class="explain">
+Decode 时 batch_size=1, seq_len=1。所有线性层都是 GEMV (矩阵×向量)。<br>
+瓶颈 = 从显存<b>读取权重矩阵</b>的时间。下表精确列出每个操作。
+</div>
+
+<div style="overflow-x:auto" id="decode-table"></div>
+
+<div id="decode-waterfall"></div>
+</div>
+</div>
+
+<div class="section">
+<div class="stitle">2. Prefill 阶段 — 处理输入 Prompt 的逐操作耗时</div>
+
+<div class="card">
+<div class="explain">
+Prefill 时一次处理整个输入序列。线性层是 GEMM (矩阵×矩阵)。<br>
+选择 Context Length: <select id="ctx-select">
+  <option value="1024">1,024</option>
+  <option value="4096">4,096</option>
+  <option value="8192">8,192</option>
+  <option value="16384">16,384</option>
+  <option value="32768" selected>32,768</option>
+  <option value="65536">65,536</option>
+  <option value="131072">131,072</option>
+</select>
+</div>
+<div style="overflow-x:auto" id="prefill-table"></div>
+</div>
+</div>
+
+<div class="section">
+<div class="stitle">3. 不同 Context Length 下的总时间对比</div>
+<div class="card">
+<div id="summary-table"></div>
+</div>
+</div>
+
+<div class="section">
+<div class="stitle">4. 优化收益估算</div>
+<div class="card" id="optimization-card"></div>
+</div>
+
+<script>
+// ============================================================
+// GPU & MODEL CONSTANTS
+// ============================================================
+const BW = 1455e9;        // bytes/sec memory bandwidth
+const FLOPS = 209e12;     // FP16 tensor core FLOPS
+const BALANCE = FLOPS/BW; // ~143.6 FLOP/byte
+
+const H = 4096;
+const HD = 128;
+const I = 16384;
+const V = 73448;
+const NQ = 32;
+const M4_KV = 2;
+const LN_KV = 32;
+const NUM_LN = 24;
+const NUM_M4 = 8;
+
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
+function fmtT(us) {
+  if (us >= 1000) return (us/1000).toFixed(2) + ' ms';
+  if (us >= 1) return us.toFixed(1) + ' μs';
+  return (us*1000).toFixed(0) + ' ns';
+}
+function fmtB(b) {
+  if (b >= 1e9) return (b/1e9).toFixed(2) + ' GB';
+  if (b >= 1e6) return (b/1e6).toFixed(2) + ' MB';
+  if (b >= 1e3) return (b/1e3).toFixed(1) + ' KB';
+  return b + ' B';
+}
+function fmtF(f) {
+  if (f >= 1e12) return (f/1e12).toFixed(2) + ' TFLOP';
+  if (f >= 1e9) return (f/1e9).toFixed(2) + ' GFLOP';
+  if (f >= 1e6) return (f/1e6).toFixed(1) + ' MFLOP';
+  return f + ' FLOP';
+}
+function fmtN(n) { return n.toLocaleString(); }
+function pct(v, total) { return (v/total*100).toFixed(1) + '%'; }
+
+// Time for a memory-bound op (read bytes from VRAM)
+function memTime(bytes) { return bytes / BW * 1e6; } // returns μs
+// Time for a compute-bound op
+function compTime(flops) { return flops / FLOPS * 1e6; } // returns μs
+// Actual time = max of both
+function opTime(flops, bytes) { return Math.max(memTime(bytes), compTime(flops)); }
+
+// ============================================================
+// DECODE OPERATIONS (batch=1, seq=1, ALL GEMV)
+// ============================================================
+function decodeOps() {
+  const ops = [];
+  const addGEMV = (name, M, N, layer_type, count, extra_read=0, note='') => {
+    const flops = 2 * M * N;           // multiply-add
+    const weight_bytes = M * N * 2;     // bf16 weights
+    const total_bytes = weight_bytes + extra_read;
+    const t = opTime(flops, total_bytes);
+    const ai = flops / total_bytes;
+    ops.push({
+      name, M, N, flops: flops*count, bytes: total_bytes*count,
+      time_us: t * count, count, layer_type,
+      ai, bound: ai < BALANCE ? 'mem' : 'comp',
+      note: note || `GEMV: [1,${M}]×[${M},${N}]`,
+      per_layer_us: t
+    });
+  };
+  const addOther = (name, flops, bytes, count, layer_type, note) => {
+    const t = opTime(flops, bytes);
+    ops.push({
+      name, flops: flops*count, bytes: bytes*count,
+      time_us: t * count, count, layer_type,
+      ai: flops/bytes, bound: flops/bytes < BALANCE ? 'mem' : 'comp',
+      note, per_layer_us: t
+    });
+  };
+
+  // ── embed_tokens lookup ──
+  addOther('embed_tokens', 0, H*2, 1, 'other', '查表: 读 1 行 [4096] × bf16');
+
+  // ═══ Lightning layers × 24 ═══
+  // input_layernorm
+  addOther('input_layernorm', H*5, H*2+H*2+H*2, NUM_LN, 'lightning',
+    'RMSNorm: 读hidden+权重, 写hidden, ~5 FLOPs/elem');
+  // qkv_proj
+  addGEMV('qkv_proj', H, LN_KV*HD*3, 'lightning', NUM_LN, 0,
+    `GEMV: [1,4096]×[4096,12288] → [1,12288]`);
+  // q_norm + k_norm
+  addOther('q_norm + k_norm', HD*5*2*NQ, (HD*2 + HD*2)*NQ*2, NUM_LN, 'lightning',
+    'RMSNorm on q,k per head');
+  // RoPE
+  addOther('RoPE', H*6*2, H*2*4, NUM_LN, 'lightning',
+    '逐元素: sin/cos 乘加, 读写 q,k');
+  // SimpleGLA fused_recurrent (decode用这个)
+  // S_new = decay * S + k⊗v, o = q × S
+  // State: 32 heads × 128 × 128 = 524288 elems = 1MB
+  // Read state + write state + read q,k,v + write o
+  const state_elems = LN_KV * HD * HD;
+  const state_bytes = state_elems * 2;
+  const gla_flops = state_elems * 3 * 2; // ~3 ops per state element (decay*S, +k⊗v, q×S)
+  const gla_bytes = state_bytes * 2 + H*2*4; // read+write state + read q,k,v + write o
+  addOther('SimpleGLA recurrent', gla_flops, gla_bytes, NUM_LN, 'lightning',
+    `读写 State(32×128×128) + q,k,v,o | ${fmtB(state_bytes)}/层`);
+  // o_norm
+  addOther('o_norm', H*5, H*2*3, NUM_LN, 'lightning', 'RMSNorm(4096)');
+  // z_proj (output gate)
+  addGEMV('z_proj', H, H, 'lightning', NUM_LN, 0,
+    'GEMV: [1,4096]×[4096,4096] → sigmoid → × o');
+  // sigmoid + multiply (fused, tiny)
+  addOther('sigmoid × o', H*4, H*2*3, NUM_LN, 'lightning', '逐元素: sigmoid + multiply');
+  // o_proj
+  addGEMV('o_proj', H, H, 'lightning', NUM_LN);
+  // residual + scale
+  addOther('residual₁ + scale', H*3, H*2*3, NUM_LN, 'lightning', 'add + multiply');
+  // post_attention_layernorm
+  addOther('post_attn_layernorm', H*5, H*2*3, NUM_LN, 'lightning', 'RMSNorm(4096)');
+  // gate_up_proj
+  addGEMV('gate_up_proj (MLP)', H, I*2, 'lightning', NUM_LN, 0,
+    `GEMV: [1,4096]×[4096,32768] → [1,32768]`);
+  // SiLU + Mul
+  addOther('SiLU × Mul', I*4, I*2*3, NUM_LN, 'lightning', '逐元素: SiLU(gate) × up');
+  // down_proj
+  addGEMV('down_proj (MLP)', I, H, 'lightning', NUM_LN, 0,
+    `GEMV: [1,16384]×[16384,4096] → [1,4096]`);
+  // residual₂
+  addOther('residual₂ + scale', H*3, H*2*3, NUM_LN, 'lightning', 'add + multiply');
+
+  // ═══ MiniCPM4 layers × 8 ═══
+  addOther('input_layernorm', H*5, H*2*3, NUM_M4, 'minicpm4', 'RMSNorm(4096)');
+  addGEMV('qkv_proj', H, NQ*HD+M4_KV*HD*2, 'minicpm4', NUM_M4, 0,
+    `GEMV: [1,4096]×[4096,4608] → [1,4608]`);
+  // RadixAttention (read KV cache)
+  // This depends on context length, we'll parametrize
+  // For now, estimate average ctx=8192
+  // Read: K cache + V cache for all cached tokens
+  // Per layer: ctx × (2 kv_heads × 128 × 2) for K and V
+  addOther('RadixAttention (KV read)', 0, 0, NUM_M4, 'minicpm4',
+    '⚡ 取决于 context length, 见下方详细分析');
+  addGEMV('o_gate', H, NQ*HD, 'minicpm4', NUM_M4, 0,
+    'GEMV: [1,4096]×[4096,4096] → sigmoid');
+  addOther('sigmoid × attn_out', H*4, H*2*3, NUM_M4, 'minicpm4', '逐元素');
+  addGEMV('o_proj', NQ*HD, H, 'minicpm4', NUM_M4);
+  addOther('residual₁ + scale', H*3, H*2*3, NUM_M4, 'minicpm4', '');
+  addOther('post_attn_layernorm', H*5, H*2*3, NUM_M4, 'minicpm4', 'RMSNorm(4096)');
+  addGEMV('gate_up_proj (MLP)', H, I*2, 'minicpm4', NUM_M4,0,
+    `GEMV: [1,4096]×[4096,32768]`);
+  addOther('SiLU × Mul', I*4, I*2*3, NUM_M4, 'minicpm4', '');
+  addGEMV('down_proj (MLP)', I, H, 'minicpm4', NUM_M4);
+  addOther('residual₂ + scale', H*3, H*2*3, NUM_M4, 'minicpm4', '');
+
+  // ── final ──
+  addOther('model.norm', H*5, H*2*3, 1, 'other', 'RMSNorm(4096)');
+  addGEMV('lm_head', H, V, 'other', 1, 0,
+    `GEMV: [1,4096]×[4096,73448] → logits`);
+  addOther('sampling (top-k)', V*10, V*4, 1, 'other', 'softmax + sampling');
+
+  return ops;
+}
+
+// ============================================================
+// KV CACHE ATTENTION TIME
+// ============================================================
+function kvCacheTime(ctx_len) {
+  // Per minicpm4 layer, decode reads entire KV cache
+  // K: ctx_len × 2 heads × 128 dim × 2 bytes
+  // V: ctx_len × 2 heads × 128 dim × 2 bytes
+  const kv_bytes_per_layer = ctx_len * M4_KV * HD * 2 * 2; // K+V
+  // Compute: ctx_len × 32 q_heads × 128 (dot product + softmax)
+  // Each q head attends to ctx_len KV (with GQA expansion)
+  const flops_per_layer = ctx_len * NQ * HD * 2; // dot products
+  const total_bytes = kv_bytes_per_layer * NUM_M4;
+  const total_flops = flops_per_layer * NUM_M4;
+  const t = opTime(total_flops, total_bytes);
+  return { total_us: t, bytes: total_bytes, flops: total_flops, per_layer_bytes: kv_bytes_per_layer };
+}
+
+// ============================================================
+// PREFILL OPERATIONS
+// ============================================================
+function prefillOps(ctx) {
+  const ops = [];
+  const addGEMM = (name, M, K, N, layer_type, count, note='') => {
+    // GEMM: [ctx, K] × [K, N] → [ctx, N]
+    // M = ctx (number of tokens)
+    const flops = 2 * M * K * N;
+    const weight_bytes = K * N * 2;
+    const act_read = M * K * 2;
+    const act_write = M * N * 2;
+    const total_bytes = weight_bytes + act_read + act_write;
+    const ai = flops / total_bytes;
+    const t = opTime(flops, total_bytes);
+    ops.push({
+      name, flops: flops*count, bytes: total_bytes*count,
+      time_us: t * count, count, layer_type,
+      ai, bound: ai < BALANCE ? 'mem' : 'comp',
+      note: note || `GEMM: [${M},${K}]×[${K},${N}]`,
+      per_layer_us: t
+    });
+  };
+  const addOther = (name, flops, bytes, count, layer_type, note) => {
+    const t = opTime(flops, bytes);
+    ops.push({
+      name, flops: flops*count, bytes: bytes*count,
+      time_us: t * count, count, layer_type,
+      ai: bytes>0?flops/bytes:0, bound: bytes>0?(flops/bytes<BALANCE?'mem':'comp'):'tiny',
+      note, per_layer_us: t
+    });
+  };
+
+  // embed
+  addOther('embed_tokens', 0, ctx*H*2, 1, 'other', `读 ${ctx} 行 embedding`);
+
+  // Lightning × 24
+  addOther('input_layernorm', ctx*H*5, ctx*H*2*3, NUM_LN, 'lightning', 'RMSNorm');
+  addGEMM('qkv_proj', ctx, H, LN_KV*HD*3, 'lightning', NUM_LN,
+    `GEMM: [${ctx},4096]×[4096,12288]`);
+  addOther('q/k_norm + RoPE', ctx*H*20, ctx*H*2*6, NUM_LN, 'lightning', 'RMSNorm×2 + RoPE');
+
+  // chunk_simple_gla for prefill
+  // Chunked: O(ctx/C × C² × H × D) where C=64
+  const C = 64;
+  const num_chunks = Math.ceil(ctx / C);
+  // intra-chunk: num_chunks × C² × num_heads × head_dim × 2 (QK^T + AV)
+  const gla_intra = num_chunks * C * C * LN_KV * HD * 2 * 2;
+  // inter-chunk state: num_chunks × num_heads × HD × HD × 3
+  const gla_inter = num_chunks * LN_KV * HD * HD * 3 * 2;
+  const gla_total_flops = gla_intra + gla_inter;
+  // Memory: read q,k,v + states
+  const gla_bytes = ctx * H * 2 * 3 + num_chunks * LN_KV * HD * HD * 2 * 2;
+  addOther('chunk_simple_gla', gla_total_flops, gla_bytes, NUM_LN, 'lightning',
+    `分块线性注意力 (chunk=${C}, ${num_chunks} chunks)`);
+
+  addOther('o_norm', ctx*H*5, ctx*H*2*3, NUM_LN, 'lightning', 'RMSNorm');
+  addGEMM('z_proj', ctx, H, H, 'lightning', NUM_LN, `GEMM: [${ctx},4096]×[4096,4096]`);
+  addOther('sigmoid × o', ctx*H*4, ctx*H*2*3, NUM_LN, 'lightning', '逐元素');
+  addGEMM('o_proj', ctx, H, H, 'lightning', NUM_LN);
+  addOther('residual₁', ctx*H*3, ctx*H*2*3, NUM_LN, 'lightning', '');
+  addOther('post_attn_ln', ctx*H*5, ctx*H*2*3, NUM_LN, 'lightning', 'RMSNorm');
+  addGEMM('gate_up_proj', ctx, H, I*2, 'lightning', NUM_LN,
+    `GEMM: [${ctx},4096]×[4096,32768]`);
+  addOther('SiLU × Mul', ctx*I*4, ctx*I*2*3, NUM_LN, 'lightning', '');
+  addGEMM('down_proj', ctx, I, H, 'lightning', NUM_LN);
+  addOther('residual₂', ctx*H*3, ctx*H*2*3, NUM_LN, 'lightning', '');
+
+  // MiniCPM4 × 8
+  addOther('input_layernorm', ctx*H*5, ctx*H*2*3, NUM_M4, 'minicpm4', 'RMSNorm');
+  addGEMM('qkv_proj', ctx, H, NQ*HD+M4_KV*HD*2, 'minicpm4', NUM_M4,
+    `GEMM: [${ctx},4096]×[4096,4608]`);
+
+  // Attention: FlashAttention
+  // Dense if ctx <= 8192, sparse otherwise
+  let attn_flops, attn_bytes;
+  if (ctx <= 8192) {
+    // Full attention: 2 × ctx² × num_heads × head_dim (QK^T + AV)
+    attn_flops = 2 * ctx * ctx * NQ * HD * 2;
+    attn_bytes = ctx * NQ * HD * 2 * 2 + ctx * M4_KV * HD * 2 * 2; // Q + KV
+  } else {
+    // Sparse: each token attends to ~6144 tokens
+    const eff = Math.min(ctx, 2048 + 64*64);
+    attn_flops = 2 * ctx * eff * NQ * HD * 2;
+    attn_bytes = ctx * NQ * HD * 2 * 2 + ctx * M4_KV * HD * 2 * 2;
+  }
+  addOther('Attention (FlashAttn)', attn_flops, attn_bytes, NUM_M4, 'minicpm4',
+    ctx<=8192 ? `全注意力 O(n²)` : `稀疏注意力 (每token看~6144)`);
+
+  addGEMM('o_gate', ctx, H, NQ*HD, 'minicpm4', NUM_M4);
+  addOther('sigmoid × attn', ctx*H*4, ctx*H*2*3, NUM_M4, 'minicpm4', '');
+  addGEMM('o_proj', ctx, NQ*HD, H, 'minicpm4', NUM_M4);
+  addOther('residual₁', ctx*H*3, ctx*H*2*3, NUM_M4, 'minicpm4', '');
+  addOther('post_attn_ln', ctx*H*5, ctx*H*2*3, NUM_M4, 'minicpm4', 'RMSNorm');
+  addGEMM('gate_up_proj', ctx, H, I*2, 'minicpm4', NUM_M4);
+  addOther('SiLU × Mul', ctx*I*4, ctx*I*2*3, NUM_M4, 'minicpm4', '');
+  addGEMM('down_proj', ctx, I, H, 'minicpm4', NUM_M4);
+  addOther('residual₂', ctx*H*3, ctx*H*2*3, NUM_M4, 'minicpm4', '');
+
+  // Final
+  addOther('model.norm', ctx*H*5, ctx*H*2*3, 1, 'other', '');
+  addGEMM('lm_head', ctx, H, V, 'other', 1, `GEMM: [${ctx},4096]×[4096,73448]`);
+
+  return ops;
+}
+
+// ============================================================
+// RENDER TABLE
+// ============================================================
+function renderTable(container_id, ops, extra_title='') {
+  const total_time = ops.reduce((s,o) => s+o.time_us, 0);
+  const total_bytes = ops.reduce((s,o) => s+o.bytes, 0);
+
+  let html = `<table>
+    <tr><th>#</th><th>操作 ${extra_title}</th><th>×层数</th><th>类型</th><th>访存量</th><th>计算量</th><th>算术强度</th><th>瓶颈</th><th>耗时</th><th>占比</th><th>说明</th></tr>`;
+
+  let ln_time=0, m4_time=0, other_time=0;
+  let gemv_time=0, norm_time=0, attn_time=0, elem_time=0;
+
+  ops.forEach((o, i) => {
+    const p = o.time_us/total_time*100;
+    const barW = Math.max(1, p*2);
+    const barColor = o.layer_type==='lightning' ? '#4a90d9' : o.layer_type==='minicpm4' ? '#e74c3c' : '#888';
+    const boundTag = o.bound==='mem' ? '<span class="tag tag-mem">访存</span>' : o.bound==='comp' ? '<span class="tag tag-comp">计算</span>' : '<span class="tag tag-tiny">微小</span>';
+
+    if (o.layer_type==='lightning') ln_time+=o.time_us;
+    else if (o.layer_type==='minicpm4') m4_time+=o.time_us;
+    else other_time+=o.time_us;
+
+    if (o.note && o.note.includes('GEMV') || o.note && o.note.includes('GEMM')) gemv_time+=o.time_us;
+    else if (o.name.includes('norm') || o.name.includes('Norm')) norm_time+=o.time_us;
+    else if (o.name.includes('Attention') || o.name.includes('GLA') || o.name.includes('recurrent') || o.name.includes('Radix') || o.name.includes('chunk')) attn_time+=o.time_us;
+    else elem_time+=o.time_us;
+
+    html += `<tr>
+      <td>${i+1}</td>
+      <td style="text-align:left;font-weight:500">${o.name}</td>
+      <td>×${o.count}</td>
+      <td style="color:${barColor}">${o.layer_type}</td>
+      <td>${fmtB(o.bytes)}</td>
+      <td>${fmtF(o.flops)}</td>
+      <td>${o.ai.toFixed(1)}</td>
+      <td>${boundTag}</td>
+      <td style="font-weight:600">${fmtT(o.time_us)}</td>
+      <td><span class="bar" style="width:${barW}px;background:${barColor}"></span>${p.toFixed(1)}%</td>
+      <td style="font-size:11px;color:#888;text-align:left;max-width:250px">${o.note||''}</td>
+    </tr>`;
+  });
+
+  html += `<tr class="total-row">
+    <td></td><td style="text-align:left">TOTAL</td><td></td><td></td>
+    <td>${fmtB(total_bytes)}</td><td></td><td></td><td></td>
+    <td>${fmtT(total_time)}</td><td>100%</td><td></td>
+  </tr>`;
+
+  // Subtotals
+  html += `<tr class="subtotal"><td colspan="8" style="text-align:left">Lightning ⚡ × 24</td><td>${fmtT(ln_time)}</td><td>${pct(ln_time,total_time)}</td><td></td></tr>`;
+  html += `<tr class="subtotal"><td colspan="8" style="text-align:left">MiniCPM4 🔍 × 8</td><td>${fmtT(m4_time)}</td><td>${pct(m4_time,total_time)}</td><td></td></tr>`;
+  html += `<tr class="subtotal"><td colspan="8" style="text-align:left">其他 (embed/norm/lm_head)</td><td>${fmtT(other_time)}</td><td>${pct(other_time,total_time)}</td><td></td></tr>`;
+
+  html += '</table>';
+
+  document.getElementById(container_id).innerHTML = html;
+  return { total_time, ln_time, m4_time, other_time, total_bytes };
+}
+
+// ============================================================
+// WATERFALL CHART
+// ============================================================
+function renderWaterfall(container_id, ops) {
+  const total = ops.reduce((s,o) => s+o.time_us, 0);
+  const maxW = 900;
+  let html = '<div class="waterfall" style="margin-top:15px"><div style="font-size:12px;color:#7ecfff;margin-bottom:8px">时间线瀑布图 (累积)</div>';
+
+  let cum = 0;
+  for (const o of ops) {
+    if (o.time_us / total < 0.003) continue; // skip tiny
+    const left = cum / total * maxW;
+    const w = Math.max(1, o.time_us / total * maxW);
+    const color = o.layer_type==='lightning' ? '#4a90d9' : o.layer_type==='minicpm4' ? '#e74c3c' : '#666';
+    html += `<div class="wf-row">
+      <div class="wf-label">${o.name} ×${o.count}</div>
+      <div class="wf-bar-area">
+        <div class="wf-bar" style="left:${left}px;width:${w}px;background:${color}">${w>40?fmtT(o.time_us):''}</div>
+      </div>
+      <div class="wf-time">${fmtT(o.time_us)}</div>
+    </div>`;
+    cum += o.time_us;
+  }
+  html += '</div>';
+  document.getElementById(container_id).innerHTML = html;
+}
+
+// ============================================================
+// SUMMARY TABLE
+// ============================================================
+function renderSummary() {
+  const ctxs = [1024, 4096, 8192, 16384, 32768, 65536, 131072];
+  let html = '<table><tr><th>Context Length</th><th>Prefill (bf16)</th><th>Decode/token (bf16)</th><th>Decode/token (W4A16)</th><th>Prefill 瓶颈</th><th>KV Cache 读取/decode</th></tr>';
+
+  const dops = decodeOps();
+  const decode_bf16 = dops.reduce((s,o) => s+o.time_us, 0);
+  const decode_w4 = decode_bf16 / 3.5; // approximate 3.5x speedup with W4
+
+  for (const ctx of ctxs) {
+    const pops = prefillOps(ctx);
+    const prefill_total = pops.reduce((s,o) => s+o.time_us, 0);
+
+    // KV cache read time during decode
+    const kv = kvCacheTime(ctx);
+
+    // Determine prefill bottleneck
+    const gemm_time = pops.filter(o => o.note && o.note.includes('GEMM')).reduce((s,o) => s+o.time_us, 0);
+    const attn_time = pops.filter(o => o.name.includes('Attention') || o.name.includes('GLA') || o.name.includes('chunk')).reduce((s,o) => s+o.time_us, 0);
+    const bottleneck = attn_time > gemm_time ? 'Attention' : 'GEMM';
+
+    html += `<tr>
+      <td style="text-align:left;font-weight:600">${ctx.toLocaleString()}</td>
+      <td>${fmtT(prefill_total)}</td>
+      <td>${fmtT(decode_bf16 + kv.total_us)}</td>
+      <td>${fmtT(decode_w4 + kv.total_us)}</td>
+      <td>${bottleneck}</td>
+      <td>${fmtT(kv.total_us)} (${fmtB(kv.bytes)})</td>
+    </tr>`;
+  }
+  html += '</table>';
+  html += '<div style="font-size:11px;color:#666;margin-top:6px">* Decode 时间 = 权重读取 + KV Cache 读取 + 计算。W4A16 仅减少权重读取部分。</div>';
+  document.getElementById('summary-table').innerHTML = html;
+}
+
+// ============================================================
+// OPTIMIZATION ANALYSIS
+// ============================================================
+function renderOptimization() {
+  const dops = decodeOps();
+  const total_bf16 = dops.reduce((s,o) => s+o.time_us, 0);
+
+  // Weight read time (all GEMV ops)
+  const weight_time = dops.filter(o => o.note && (o.note.includes('GEMV') || o.note.includes('GEMM'))).reduce((s,o) => s+o.time_us, 0);
+  const non_weight = total_bf16 - weight_time;
+
+  const w4_weight_time = weight_time / 4; // 4-bit = 1/4 bandwidth
+  const w4_total = w4_weight_time + non_weight;
+
+  const kv8k = kvCacheTime(8192);
+  const kv32k = kvCacheTime(32768);
+  const kv128k = kvCacheTime(131072);
+
+  let html = `
+  <h3>Decode 优化收益 (最重要! 占比赛 40% 权重)</h3>
+  <table>
+    <tr><th>优化措施</th><th>Decode 时间</th><th>加速比</th><th>难度</th><th>说明</th></tr>
+    <tr><td style="text-align:left">当前 (bf16)</td><td>${fmtT(total_bf16)}</td><td>1.00×</td><td>—</td><td style="text-align:left">基线</td></tr>
+    <tr><td style="text-align:left;color:#7ee787;font-weight:600">W4A16 量化 (GPTQ+Marlin)</td>
+      <td style="color:#7ee787;font-weight:600">${fmtT(w4_total)}</td>
+      <td style="color:#7ee787;font-weight:600">${(total_bf16/w4_total).toFixed(2)}×</td>
+      <td>中等</td>
+      <td style="text-align:left">权重读取 ${fmtT(weight_time)} → ${fmtT(w4_weight_time)}，非权重部分不变</td></tr>
+    <tr><td style="text-align:left;color:#79c0ff">W4A16 + FP8 KV Cache</td>
+      <td style="color:#79c0ff">${fmtT(w4_total)}</td>
+      <td style="color:#79c0ff">${(total_bf16/w4_total).toFixed(2)}×</td>
+      <td>中等</td>
+      <td style="text-align:left">KV Cache 只有 8 层×2头，太小了，FP8 收益可忽略</td></tr>
+  </table>
+
+  <div class="insight" style="margin-top:15px">
+    <b>核心发现：</b><br>
+    Decode 阶段 <b>${pct(weight_time, total_bf16)}</b> 的时间在读权重 (GEMV)。<br>
+    W4A16 量化能把这部分减少 4×，总时间从 ${fmtT(total_bf16)} → ${fmtT(w4_total)}，加速 <b>${(total_bf16/w4_total).toFixed(1)}×</b>。<br><br>
+    SALA 架构的 KV Cache 极小（只有 8 层 × 2 KV heads），所以：<br>
+    • ctx=8K 时 KV 读取仅 ${fmtT(kv8k.total_us)} (${fmtB(kv8k.bytes)})<br>
+    • ctx=32K 时也才 ${fmtT(kv32k.total_us)} (${fmtB(kv32k.bytes)})<br>
+    • ctx=128K 时 ${fmtT(kv128k.total_us)} (${fmtB(kv128k.bytes)})<br>
+    这比标准 Transformer 小 ~50×！所以 FP8 KV Cache 优化对这个模型收益很小。
+  </div>
+
+  <h3 style="margin-top:20px">各类操作耗时占比 (Decode, bf16)</h3>
+  <table>
+    <tr><th>操作类型</th><th>耗时</th><th>占比</th><th>是否可量化加速</th></tr>`;
+
+  const categories = [
+    { name: 'GEMV (线性层权重读取)', filter: o => o.note && (o.note.includes('GEMV')||o.note.includes('GEMM')), quantizable: true },
+    { name: 'SimpleGLA 递推', filter: o => o.name.includes('GLA'), quantizable: false },
+    { name: 'RMSNorm', filter: o => o.name.includes('norm') || o.name.includes('Norm'), quantizable: false },
+    { name: 'RoPE', filter: o => o.name.includes('RoPE'), quantizable: false },
+    { name: '逐元素 (sigmoid, SiLU, residual)', filter: o => o.name.includes('sigmoid') || o.name.includes('SiLU') || o.name.includes('residual'), quantizable: false },
+    { name: '其他 (embed, sampling)', filter: o => false, quantizable: false },
+  ];
+
+  let accounted = 0;
+  for (const cat of categories) {
+    const t = dops.filter(cat.filter).reduce((s,o) => s+o.time_us, 0);
+    accounted += t;
+    html += `<tr><td style="text-align:left">${cat.name}</td><td>${fmtT(t)}</td><td>${pct(t, total_bf16)}</td><td>${cat.quantizable ? '✅ W4 → 4× 加速' : '❌'}</td></tr>`;
+  }
+  const remaining = total_bf16 - accounted;
+  html += `<tr><td style="text-align:left">其他</td><td>${fmtT(remaining)}</td><td>${pct(remaining, total_bf16)}</td><td>—</td></tr>`;
+  html += '</table>';
+
+  html += `
+  <h3 style="margin-top:20px">优先级排序</h3>
+  <div class="explain">
+  <b>🥇 第一优先: W4A16 量化 (GPTQ + Marlin kernel)</b><br>
+  收益: Decode ~${(total_bf16/w4_total).toFixed(1)}× 加速，这是最大的单项优化。<br>
+  原因: ${pct(weight_time, total_bf16)} 时间是读权重，量化直接砍 4 倍。<br><br>
+
+  <b>🥈 第二优先: Kernel Fusion (算子融合)</b><br>
+  收益: 减少 kernel launch 开销 + 减少中间结果的显存读写<br>
+  可融合: qkv_proj + q/k_norm + RoPE，z_proj + sigmoid + multiply + o_proj<br><br>
+
+  <b>🥉 第三优先: Chunked Prefill 调优</b><br>
+  收益: 优化长序列 prefill，但比赛权重只有 30%+30%<br>
+  方法: 调整 chunk_size、prefill/decode 调度策略<br><br>
+
+  <b>❌ 低优先: FP8 KV Cache</b><br>
+  原因: SALA 只有 8 层 × 2 KV heads，KV Cache 极小 (128K ctx 才 ${fmtB(kv128k.bytes)})
+  </div>`;
+
+  document.getElementById('optimization-card').innerHTML = html;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  // Decode table
+  const dops = decodeOps();
+  renderTable('decode-table', dops);
+  renderWaterfall('decode-waterfall', dops);
+
+  // Prefill table (default ctx)
+  const defaultCtx = 32768;
+  const pops = prefillOps(defaultCtx);
+  renderTable('prefill-table', pops, `(ctx=${defaultCtx.toLocaleString()})`);
+
+  // Ctx selector
+  document.getElementById('ctx-select').addEventListener('change', (e) => {
+    const ctx = parseInt(e.target.value);
+    const pops = prefillOps(ctx);
+    renderTable('prefill-table', pops, `(ctx=${ctx.toLocaleString()})`);
+  });
+
+  // Summary
+  renderSummary();
+
+  // Optimization
+  renderOptimization();
+});
+</script>
+</body>
+</html>

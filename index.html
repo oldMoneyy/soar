@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOAR Notes</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0a0e17; color: #e2e8f0; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .container { max-width: 560px; width: 100%; padding: 40px 24px; }
+  h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 32px; color: #f8fafc; }
+  h1 span { background: linear-gradient(135deg, #22d3ee, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  a { text-decoration: none; display: block; padding: 20px; margin-bottom: 12px; background: #111827; border: 1px solid #2a3a52; border-radius: 10px; transition: border-color 0.2s, transform 0.15s; }
+  a:hover { border-color: #22d3ee; transform: translateX(4px); }
+  .title { font-size: 1rem; font-weight: 600; color: #f8fafc; margin-bottom: 4px; }
+  .desc { font-size: 0.82rem; color: #94a3b8; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><span>SOAR</span> Competition Notes</h1>
+  <a href="compile.html">
+    <div class="title">Compilation & Submission Pipeline</div>
+    <div class="desc">sgl-kernel build process: .cu → .o → .so → wheel → tar.gz</div>
+  </a>
+  <a href="sala_and_code.html">
+    <div class="title">MiniCPM-SALA Model Architecture</div>
+    <div class="desc">9.48B model panorama: Lightning layers, MiniCPM4 layers, parameter breakdown</div>
+  </a>
+  <a href="sala_compute.html">
+    <div class="title">Compute Analysis — RTX 5090</div>
+    <div class="desc">Per-operation timing analysis: memory bandwidth, FLOP/Byte, decode bottlenecks</div>
+  </a>
+</div>
+</body>
+</html>

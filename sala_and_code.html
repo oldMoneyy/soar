@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>MiniCPM-SALA 模型架构可视化 (含源码)</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0e1a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; }
+h1 { text-align: center; color: #7ecfff; margin-bottom: 5px; font-size: 22px; }
+h2 { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 13px; font-weight: normal; }
+.section { margin: 30px auto; max-width: 1400px; }
+.section-title { color: #7ecfff; font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid #2a3050; padding-bottom: 6px; }
+
+/* Treemap */
+.treemap-container { position: relative; background: #111827; border-radius: 8px; overflow: hidden; border: 1px solid #2a3050; }
+.treemap-block { position: absolute; border: 1px solid rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; text-align: center; font-size: 11px; overflow: hidden; cursor: pointer; transition: filter 0.15s; }
+.treemap-block:hover { filter: brightness(1.25); z-index: 10; }
+.treemap-block .label { pointer-events: none; line-height: 1.3; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+.treemap-block .label .name { font-weight: 600; }
+.treemap-block .label .params { font-size: 10px; opacity: 0.85; }
+
+/* Tooltip */
+.tooltip { position: fixed; background: #1a2040; border: 1px solid #3a4a70; border-radius: 6px; padding: 10px 14px; font-size: 12px; pointer-events: none; z-index: 1000; display: none; max-width: 350px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+.tooltip .tt-name { font-weight: 700; color: #7ecfff; margin-bottom: 4px; }
+.tooltip .tt-params { color: #e0e0e0; }
+.tooltip .tt-pct { color: #aaa; font-size: 11px; }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-top: 15px; }
+.stat-card { background: #111827; border: 1px solid #2a3050; border-radius: 8px; padding: 14px; }
+.stat-card .title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-card .value { font-size: 20px; color: #7ecfff; font-weight: 700; margin: 4px 0; }
+.stat-card .detail { font-size: 11px; color: #aaa; }
+
+/* Flow diagram */
+.flow-row { display: flex; gap: 20px; margin-top: 15px; }
+.flow-col { flex: 1; min-width: 0; }
+.flow-card { background: #111827; border: 1px solid #2a3050; border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+.flow-card-header { padding: 10px 14px; font-weight: 700; font-size: 13px; border-bottom: 1px solid #2a3050; display: flex; justify-content: space-between; align-items: center; }
+.flow-card-body { padding: 0; }
+
+/* Step row */
+.step { display: flex; border-bottom: 1px solid #1a2040; }
+.step:last-child { border-bottom: none; }
+.step:hover { background: rgba(126,207,255,0.03); }
+.step-left { flex: 1; padding: 10px 14px; min-width: 0; border-right: 1px solid #1a2040; }
+.step-right { flex: 1.2; padding: 10px 14px; min-width: 0; background: #0d1117; }
+.step-name { font-weight: 600; font-size: 12px; color: #e0e0e0; margin-bottom: 3px; display: flex; align-items: center; gap: 8px; }
+.step-dim { font-size: 11px; color: #888; }
+.step-params { font-size: 11px; color: #7ecfff; font-weight: 600; }
+.step-bar { height: 4px; border-radius: 2px; margin-top: 4px; transition: width 0.3s; }
+
+/* Code block */
+.code { font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace; font-size: 11px; color: #c9d1d9; line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
+.code .kw { color: #ff7b72; }
+.code .fn { color: #d2a8ff; }
+.code .str { color: #a5d6ff; }
+.code .cmt { color: #8b949e; font-style: italic; }
+.code .num { color: #79c0ff; }
+.code .var { color: #ffa657; }
+.code .op { color: #ff7b72; }
+
+/* Arrow between steps */
+.arrow { text-align: center; color: #4a5568; font-size: 16px; padding: 2px 0; user-select: none; }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 12px; font-size: 12px; }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-color { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.2); }
+
+/* Layer bars */
+.layer-bar-row { display: flex; align-items: center; margin-bottom: 2px; }
+.layer-bar-label { width: 100px; font-size: 11px; color: #aaa; text-align: right; padding-right: 8px; flex-shrink: 0; }
+.layer-bar { height: 18px; display: flex; border-radius: 2px; overflow: hidden; }
+.layer-bar-seg { height: 100%; }
+.layer-bar-seg:hover { opacity: 0.8; }
+.layer-bar-total { font-size: 10px; color: #888; padding-left: 6px; display: flex; align-items: center; }
+
+/* Memory table */
+.mem-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
+.mem-table th { background: #1a2040; padding: 8px 10px; text-align: right; color: #7ecfff; border: 1px solid #2a3050; }
+.mem-table td { padding: 6px 10px; text-align: right; border: 1px solid #2a3050; }
+.mem-table td:first-child, .mem-table th:first-child { text-align: left; }
+.mem-table tr:hover td { background: rgba(126,207,255,0.05); }
+.bar-in-cell { display: inline-block; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+.col-header { display: flex; justify-content: space-between; font-size: 11px; color: #666; padding: 4px 14px; border-bottom: 1px solid #1a2040; background: #0f1520; }
+</style>
+</head>
+<body>
+
+<h1>MiniCPM-SALA 9.48B 模型架构全景</h1>
+<h2>每个方块面积精确正比于参数量 | 总参数: 9,477,203,968 | 含对应源码</h2>
+
+<div id="tooltip" class="tooltip"></div>
+
+<div class="section">
+  <div class="stats-grid">
+    <div class="stat-card"><div class="title">总参数量</div><div class="value">9,477,203,968</div><div class="detail">bf16: 17.65 GiB | W4A16: ~4.41 GiB</div></div>
+    <div class="stat-card"><div class="title">Lightning 层 ⚡ (线性注意力)</div><div class="value" id="stat-lightning">6,845,405,184</div><div class="detail">24 层 × 285,225,216 | 72.2% 参数</div></div>
+    <div class="stat-card"><div class="title">MiniCPM4 层 🔍 (稀疏注意力)</div><div class="value" id="stat-minicpm4">2,030,108,672</div><div class="detail">8 层 × 253,763,584 | 21.4% 参数</div></div>
+    <div class="stat-card"><div class="title">非层参数</div><div class="value">601,690,112</div><div class="detail">embed + lm_head + norm | 6.3%</div></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION: Full Forward Flow with Code -->
+<!-- ============================================================ -->
+<div class="section">
+  <div class="section-title">1. 完整 Forward 流程（左: 计算流 + 参数量 | 右: 对应源码）</div>
+
+  <!-- Global pre/post -->
+  <div class="flow-card" style="border-color: #e74c3c44;">
+    <div class="flow-card-header" style="background:#1a1020; color:#e74c3c;">
+      入口 & 出口（非层参数）
+      <span style="font-size:11px; color:#888; font-weight:normal;">601,690,112 params (6.3%)</span>
+    </div>
+    <div class="col-header"><span>计算流程 & 参数量</span><span>对应源码 (minicpm.py)</span></div>
+    <div class="flow-card-body">
+      <div class="step">
+        <div class="step-left">
+          <div class="step-name"><span style="color:#e74c3c;">●</span> embed_tokens</div>
+          <div class="step-dim">token_id → [4096] 向量 | 查表 73,448 × 4,096</div>
+          <div class="step-params">300,843,008 params (573.0 MiB)</div>
+          <div class="step-bar" style="width:50%; background:#e74c3c;"></div>
+        </div>
+        <div class="step-right">
+          <div class="code"><span class="cmt"># MiniCPMModel.forward()</span>
+<span class="var">hidden_states</span> = self.<span class="fn">embed_tokens</span>(input_ids) * self.config.<span class="var">scale_emb</span>
+<span class="cmt"># scale_emb = 12 (config.json 里的常数, 不是参数)</span></div>
+        </div>
+      </div>
+      <div class="arrow">↓ 经过 32 层 Decoder Layer ↓</div>
+      <div class="step">
+        <div class="step-left">
+          <div class="step-name"><span style="color:#16a085;">●</span> model.norm</div>
+          <div class="step-dim">RMSNorm(4096)</div>
+          <div class="step-params">4,096 params (8.0 KiB)</div>
+        </div>
+        <div class="step-right">
+          <div class="code"><span class="cmt"># MiniCPMModel.forward()</span>
+<span class="var">hidden_states</span> = self.<span class="fn">norm</span>(hidden_states)</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-left">
+          <div class="step-name"><span style="color:#c0392b;">●</span> lm_head</div>
+          <div class="step-dim">[4096] → [73,448] logits | 4,096 × 73,448</div>
+          <div class="step-params">300,843,008 params (573.0 MiB)</div>
+          <div class="step-bar" style="width:50%; background:#c0392b;"></div>
+        </div>
+        <div class="step-right">
+          <div class="code"><span class="cmt"># MiniCPMForCausalLM.forward()</span>
+<span class="var">hidden_states</span> = hidden_states / self.<span class="var">scale_width</span>
+<span class="cmt"># scale_width = hidden_size / dim_model_base = 4096/256 = 16</span>
+<span class="kw">return</span> self.<span class="fn">logits_processor</span>(input_ids, hidden_states, self.<span class="fn">lm_head</span>, forward_batch)
+<span class="cmt"># → softmax → top-k/sampling → 下一个 token</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decoder Layer shell -->
+  <div class="flow-card" style="border-color:#2a3050;">
+    <div class="flow-card-header" style="background:#0f1520; color:#aaa;">
+      每个 Decoder Layer 的外壳（32层共享结构）
+      <span style="font-size:11px; color:#888; font-weight:normal;">MiniCPMDecoderLayer.forward()</span>
+    </div>
+    <div class="flow-card-body">
+      <div class="step">
+        <div class="step-left">
+          <div class="step-dim" style="color:#aaa;">残差连接 + 缩放的结构</div>
+        </div>
+        <div class="step-right">
+          <div class="code"><span class="cmt"># MiniCPMDecoderLayer.forward()</span>
+<span class="var">residual</span> = hidden_states
+hidden_states = self.<span class="fn">input_layernorm</span>(hidden_states)
+hidden_states = self.<span class="fn">self_attn</span>(positions, hidden_states, forward_batch)
+hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.<span class="fn">sqrt</span>(<span class="num">32</span>))
+<span class="cmt"># scale_depth=1.4, num_hidden_layers=32 → 系数 ≈ 0.2475</span>
+
+<span class="var">residual</span> = hidden_states
+hidden_states = self.<span class="fn">post_attention_layernorm</span>(hidden_states)
+hidden_states = self.<span class="fn">mlp</span>(hidden_states)
+hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.<span class="fn">sqrt</span>(<span class="num">32</span>))</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightning Layer -->
+  <div class="flow-row">
+    <div class="flow-col">
+      <div class="flow-card" style="border-color:#4a90d9;">
+        <div class="flow-card-header" style="background:#0f1828; color:#4a90d9;">
+          ⚡ Lightning 层 (线性注意力) — 24层
+          <span style="font-size:11px; color:#888; font-weight:normal;">285,225,216 params/层 | 共 6,845,405,184</span>
+        </div>
+        <div class="col-header"><span>计算流程 & 参数量</span><span>对应源码 (MiniCPMLightningMixer)</span></div>
+        <div class="flow-card-body">
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#27ae60;">●</span> input_layernorm</div>
+              <div class="step-dim">RMSNorm(4096)</div>
+              <div class="step-params">4,096 params</div>
+            </div>
+            <div class="step-right">
+              <div class="code">hidden = self.<span class="fn">input_layernorm</span>(hidden)</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#4a90d9;">●</span> qkv_proj <span style="font-size:10px;color:#ff7b72;">← 最大GEMM!</span></div>
+              <div class="step-dim">[4096] → [12288] = Q(4096)+K(4096)+V(4096)</div>
+              <div class="step-dim">32 Q头 × 128dim + 32 KV头 × 128dim × 2</div>
+              <div class="step-params">50,331,648 params (96.0 MiB) 🔥</div>
+              <div class="step-bar" style="width:100%; background:#4a90d9;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">qkv</span>, _ = self.<span class="fn">qkv_proj</span>(hidden_states)
+<span class="var">q, k, v</span> = qkv.<span class="fn">split</span>([<span class="num">4096</span>, <span class="num">4096</span>, <span class="num">4096</span>], dim=-<span class="num">1</span>)
+<span class="cmt"># QKVParallelLinear: 4096 → 4096+4096+4096
+# 32 heads × 128 dim for Q, K, V each</span></div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#c084fc;">●</span> q_norm + k_norm</div>
+              <div class="step-dim">RMSNorm(128) × 2, per head</div>
+              <div class="step-params">128 + 128 = 256 params</div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">q</span> = self.<span class="fn">q_norm</span>(q.reshape(-<span class="num">1</span>, <span class="num">128</span>))
+<span class="var">k</span> = self.<span class="fn">k_norm</span>(k.reshape(-<span class="num">1</span>, <span class="num">128</span>))</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#888;">○</span> RoPE (无参数)</div>
+              <div class="step-dim">旋转位置编码, 你已优化去掉 fp32 upcast</div>
+              <div class="step-params">0 params (config常数)</div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="cmt"># 你的优化: 去掉了 q.float(), k.float()</span>
+<span class="cmt"># orig_dtype = q.dtype</span>
+<span class="cmt"># q, k = q.float(), k.float()  ← 删掉了</span>
+<span class="var">q, k</span> = self.<span class="fn">rotary_emb</span>(positions, q, k)
+<span class="cmt"># q, k = q.to(orig_dtype), k.to(orig_dtype)  ← 删掉了</span></div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#888;">○</span> SimpleGLA Kernel (无权重参数)</div>
+              <div class="step-dim">递推 State: (32, 128, 128) = 每请求 1.0 MiB/层</div>
+              <div class="step-dim">decay: ALiBi slopes, 固定不可学习</div>
+              <div class="step-params">0 可学习参数 | State 不存在 safetensors 里</div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="cmt"># SimpleGLAAttnBackend.forward()</span>
+<span class="var">mode</span> = <span class="str">"fused_recurrent"</span> <span class="kw">if</span> seq_len < <span class="num">64</span> <span class="kw">else</span> <span class="str">"chunk"</span>
+
+<span class="kw">if</span> mode == <span class="str">"fused_recurrent"</span>:  <span class="cmt"># decode / 短序列</span>
+    <span class="var">o</span>, final = <span class="fn">fused_recurrent_simple_gla</span>(
+        q, k, v, g_gamma=<span class="var">self.g_gamma</span>,  <span class="cmt"># ALiBi slopes</span>
+        scale=<span class="var">self.scale</span>,  <span class="cmt"># 1/√128 = 0.0884</span>
+        initial_state=initial_state, ...)
+<span class="kw">else</span>:  <span class="cmt"># 长 prefill</span>
+    <span class="var">o</span>, final = <span class="fn">chunk_simple_gla</span>(
+        q, k, v, g_gamma=<span class="var">self.g_gamma</span>, ...)
+<span class="cmt"># 核心递推: S = decay × S + k⊗v, o = q × S</span></div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#a78bfa;">●</span> o_norm</div>
+              <div class="step-dim">RMSNorm(4096)</div>
+              <div class="step-params">4,096 params</div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">o</span> = self.<span class="fn">o_norm</span>(o)</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#9b59b6;">●</span> z_proj (output gate)</div>
+              <div class="step-dim">[4096] → [4096] → sigmoid → × o</div>
+              <div class="step-params">16,777,216 params (32.0 MiB)</div>
+              <div class="step-bar" style="width:33%; background:#9b59b6;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">z</span>, _ = self.<span class="fn">z_proj</span>(hidden_states)  <span class="cmt"># 注意用原始 hidden!</span>
+<span class="var">o</span> = o * F.<span class="fn">sigmoid</span>(z)</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#5b6abf;">●</span> o_proj</div>
+              <div class="step-dim">[4096] → [4096]</div>
+              <div class="step-params">16,777,216 params (32.0 MiB)</div>
+              <div class="step-bar" style="width:33%; background:#5b6abf;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">y</span>, _ = self.<span class="fn">o_proj</span>(o)
+<span class="kw">return</span> y</div>
+            </div>
+          </div>
+
+          <div class="arrow">↓ 残差 + 缩放 ↓</div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#2ecc71;">●</span> post_attention_layernorm</div>
+              <div class="step-dim">RMSNorm(4096)</div>
+              <div class="step-params">4,096 params</div>
+            </div>
+            <div class="step-right">
+              <div class="code">hidden = self.<span class="fn">post_attention_layernorm</span>(hidden)</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#e67e22;">●</span> MLP: gate_up_proj</div>
+              <div class="step-dim">[4096] → [32768] (gate 16384 + up 16384)</div>
+              <div class="step-params">134,217,728 params (256.0 MiB) 🔥</div>
+              <div class="step-bar" style="width:100%; background:#e67e22;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="cmt"># MiniCPMMLP.forward()</span>
+<span class="var">gate_up</span>, _ = self.<span class="fn">gate_up_proj</span>(x)  <span class="cmt"># 合并: [gate|up]</span>
+<span class="var">x</span> = self.<span class="fn">act_fn</span>(gate_up)
+<span class="cmt"># SiluAndMul: gate部分过SiLU, 乘以up部分
+# output dim = 16384 (半分)</span></div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#d4a843;">●</span> MLP: down_proj</div>
+              <div class="step-dim">[16384] → [4096]</div>
+              <div class="step-params">67,108,864 params (128.0 MiB)</div>
+              <div class="step-bar" style="width:50%; background:#d4a843;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">x</span>, _ = self.<span class="fn">down_proj</span>(x)
+<span class="kw">return</span> x</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- MiniCPM4 Layer -->
+    <div class="flow-col">
+      <div class="flow-card" style="border-color:#e74c3c;">
+        <div class="flow-card-header" style="background:#1a1018; color:#e74c3c;">
+          🔍 MiniCPM4 层 (稀疏注意力) — 8层
+          <span style="font-size:11px; color:#888; font-weight:normal;">253,763,584 params/层 | 共 2,030,108,672</span>
+        </div>
+        <div class="col-header"><span>计算流程 & 参数量</span><span>对应源码 (MiniCPMAttention)</span></div>
+        <div class="flow-card-body">
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#27ae60;">●</span> input_layernorm</div>
+              <div class="step-dim">RMSNorm(4096)</div>
+              <div class="step-params">4,096 params</div>
+            </div>
+            <div class="step-right">
+              <div class="code">hidden = self.<span class="fn">input_layernorm</span>(hidden)</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#4a90d9;">●</span> qkv_proj <span style="font-size:10px;color:#888;">(比 lightning 小!)</span></div>
+              <div class="step-dim">[4096] → [4608] = Q(4096)+K(256)+V(256)</div>
+              <div class="step-dim">32 Q头 × 128dim + <b>2</b> KV头 × 128dim × 2</div>
+              <div class="step-params">18,874,368 params (36.0 MiB)</div>
+              <div class="step-bar" style="width:37%; background:#4a90d9;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">qkv</span>, _ = self.<span class="fn">qkv_proj</span>(hidden_states)
+<span class="var">q, k, v</span> = qkv.<span class="fn">split</span>([<span class="num">4096</span>, <span class="num">256</span>, <span class="num">256</span>], dim=-<span class="num">1</span>)
+<span class="cmt"># GQA: 32 Q heads, 只有 2 KV heads
+# KV Cache 很小!</span></div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#888;">○</span> ❌ 无 RoPE, 无 qk_norm</div>
+              <div class="step-dim">attn_use_rope = false in config.json</div>
+              <div class="step-params">0 params</div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="cmt"># config.json: "attn_use_rope": false
+# 所以 minicpm4 层跳过 RoPE
+# 也没有 qk_norm</span>
+<span class="kw">if</span> self.attn_use_rope:  <span class="cmt"># False → 跳过</span>
+    q, k = self.rotary_emb(positions, q, k)</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#888;">○</span> RadixAttention (标准 softmax)</div>
+              <div class="step-dim">FlashInfer kernel | 需要 KV Cache</div>
+              <div class="step-dim">KV Cache: 2头 × 128dim × 2(K+V) × 2B = 1 KiB/token/层</div>
+              <div class="step-params">0 可学习参数 | KV Cache 在显存另算</div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">attn_output</span> = self.<span class="fn">attn</span>(q, k, v, forward_batch)
+<span class="cmt"># RadixAttention → FlashInfer
+# Decode: 读 KV Cache, 计算 softmax attention
+# Prefill ctx≤8192: 全注意力
+# Prefill ctx>8192: 稀疏注意力
+#   window=2048, topk=64 blocks×64 = 4096
+#   每 token 最多看 6144 个 token</span></div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#7c5cbf;">●</span> o_gate (注意不是 z_proj!)</div>
+              <div class="step-dim">[4096] → [4096] → sigmoid → × attn_output</div>
+              <div class="step-params">16,777,216 params (32.0 MiB)</div>
+              <div class="step-bar" style="width:33%; background:#7c5cbf;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">o_gate_output</span>, _ = self.<span class="fn">o_gate</span>(hidden_states)
+<span class="var">attn_output</span> = attn_output * F.<span class="fn">sigmoid</span>(o_gate_output)
+<span class="cmt"># 和 lightning 的 z_proj 功能一样
+# 但命名不同: o_gate vs z_proj</span></div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#5b6abf;">●</span> o_proj</div>
+              <div class="step-dim">[4096] → [4096]</div>
+              <div class="step-params">16,777,216 params (32.0 MiB)</div>
+              <div class="step-bar" style="width:33%; background:#5b6abf;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">output</span>, _ = self.<span class="fn">o_proj</span>(attn_output)
+<span class="kw">return</span> output</div>
+            </div>
+          </div>
+
+          <div class="arrow">↓ 残差 + 缩放 ↓</div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#2ecc71;">●</span> post_attention_layernorm</div>
+              <div class="step-dim">RMSNorm(4096)</div>
+              <div class="step-params">4,096 params</div>
+            </div>
+            <div class="step-right">
+              <div class="code">hidden = self.<span class="fn">post_attention_layernorm</span>(hidden)</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#e67e22;">●</span> MLP: gate_up_proj</div>
+              <div class="step-dim">[4096] → [32768] (与 lightning 完全相同)</div>
+              <div class="step-params">134,217,728 params (256.0 MiB) 🔥</div>
+              <div class="step-bar" style="width:100%; background:#e67e22;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="cmt"># MLP 和 lightning 层完全一样</span>
+<span class="var">gate_up</span>, _ = self.<span class="fn">gate_up_proj</span>(x)
+<span class="var">x</span> = self.<span class="fn">act_fn</span>(gate_up)</div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-left">
+              <div class="step-name"><span style="color:#d4a843;">●</span> MLP: down_proj</div>
+              <div class="step-dim">[16384] → [4096]</div>
+              <div class="step-params">67,108,864 params (128.0 MiB)</div>
+              <div class="step-bar" style="width:50%; background:#d4a843;"></div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="var">x</span>, _ = self.<span class="fn">down_proj</span>(x)
+<span class="kw">return</span> x</div>
+            </div>
+          </div>
+
+          <div class="step" style="background:#1a101800;">
+            <div class="step-left">
+              <div class="step-dim" style="color:#666; padding:5px 0;">
+                ⚠️ minicpm4 比 lightning 少 31,461,632 params/层<br>
+                差异来自: qkv_proj (2 vs 32 KV头) 少 31,457,280<br>
+                加上少了 q_norm/k_norm/o_norm, 多了无参数差异
+              </div>
+            </div>
+            <div class="step-right">
+              <div class="code"><span class="cmt"># 参数差异:
+# lightning qkv: 4096×12288 = 50,331,648
+# minicpm4  qkv: 4096×4608  = 18,874,368
+# 差: 31,457,280 (几乎全部差异)</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION: Treemap -->
+<!-- ============================================================ -->
+<div class="section">
+  <div class="section-title">2. 全模型参数 Treemap（面积 = 参数量, 悬停看详情）</div>
+  <div id="treemap" class="treemap-container"></div>
+  <div class="legend" id="legend"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION: Layer bars -->
+<!-- ============================================================ -->
+<div class="section">
+  <div class="section-title">3. 逐层参数量对比</div>
+  <div id="layer-bars"></div>
+  <div class="legend" id="legend2" style="margin-top:8px;"></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SECTION: Memory -->
+<!-- ============================================================ -->
+<div class="section">
+  <div class="section-title">4. 显存占用 — 不同 Context Length (单请求)</div>
+  <div id="mem-chart"></div>
+</div>
+
+<script>
+const TOTAL_PARAMS = 9477203968;
+const HIDDEN = 4096, HEAD_DIM = 128, INTERMEDIATE = 16384, VOCAB = 73448;
+const NUM_Q_HEADS = 32, M4_KV = 2, LN_KV = 32;
+const MIXER_TYPES = ["minicpm4","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","minicpm4","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","minicpm4","minicpm4","lightning-attn","lightning-attn","lightning-attn","lightning-attn","minicpm4","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","minicpm4","minicpm4","minicpm4"];
+const COLORS = { qkv:'#4a90d9', o:'#5b6abf', gate:'#7c5cbf', z:'#9b59b6', norms:'#27ae60', gup:'#e67e22', down:'#d4a843', embed:'#e74c3c', lm:'#c0392b' };
+
+function fmtN(n){if(n>=1e9)return(n/1e9).toFixed(2)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return n+'';}
+function fmtB(b){if(b>=1024**3)return(b/1024**3).toFixed(2)+' GiB';if(b>=1024**2)return(b/1024**2).toFixed(1)+' MiB';return(b/1024).toFixed(1)+' KiB';}
+function fmtE(n){return n.toLocaleString();}
+
+function lightningParams(){return[{n:'qkv_proj',p:HIDDEN*LN_KV*HEAD_DIM*3,c:COLORS.qkv},{n:'z_proj',p:HIDDEN*LN_KV*HEAD_DIM,c:COLORS.z},{n:'o_proj',p:LN_KV*HEAD_DIM*HIDDEN,c:COLORS.o},{n:'gate_up',p:HIDDEN*INTERMEDIATE*2,c:COLORS.gup},{n:'down',p:INTERMEDIATE*HIDDEN,c:COLORS.down},{n:'norms',p:HEAD_DIM*2+LN_KV*HEAD_DIM+HIDDEN*2,c:COLORS.norms}];}
+function minicpm4Params(){return[{n:'qkv_proj',p:HIDDEN*(NUM_Q_HEADS*HEAD_DIM+M4_KV*HEAD_DIM*2),c:COLORS.qkv},{n:'o_gate',p:HIDDEN*NUM_Q_HEADS*HEAD_DIM,c:COLORS.gate},{n:'o_proj',p:NUM_Q_HEADS*HEAD_DIM*HIDDEN,c:COLORS.o},{n:'gate_up',p:HIDDEN*INTERMEDIATE*2,c:COLORS.gup},{n:'down',p:INTERMEDIATE*HIDDEN,c:COLORS.down},{n:'norms',p:HIDDEN*2,c:COLORS.norms}];}
+
+// Treemap layout
+function squarify(items,x,y,w,h){const r=[];if(!items.length)return r;const t=items.reduce((s,i)=>s+i.value,0);if(!t)return r;lay([...items].sort((a,b)=>b.value-a.value),t,x,y,w,h,r);return r;}
+function lay(items,total,x,y,w,h,rects){if(!items.length)return;if(items.length===1){rects.push({...items[0],x,y,w,h});return;}const hz=w>=h;let strip=[items[0]],st=items[0].value;for(let i=1;i<items.length;i++){const nt=st+items[i].value,ni=[...strip,items[i]];if(wr(ni,nt,total,hz?h:w,hz?w:h)<=wr(strip,st,total,hz?h:w,hz?w:h)){strip.push(items[i]);st=nt;}else break;}const f=st/total;if(hz){const sw=w*f;let cy=y;for(const it of strip){const ih=h*(it.value/st);rects.push({...it,x,y:cy,w:sw,h:ih});cy+=ih;}lay(items.slice(strip.length),total-st,x+sw,y,w-sw,h,rects);}else{const sh=h*f;let cx=x;for(const it of strip){const iw=w*(it.value/st);rects.push({...it,x:cx,y,w:iw,h:sh});cx+=iw;}lay(items.slice(strip.length),total-st,x,y+sh,w,h-sh,rects);}}
+function wr(items,st,gt,sl,ol){const ss=ol*(st/gt);let worst=0;for(const it of items){const w=ss,h=sl*(it.value/st),r=Math.max(w/h,h/w);worst=Math.max(worst,r);}return worst;}
+
+function renderTM(el,items,w,h){el.style.width=w+'px';el.style.height=h+'px';el.innerHTML='';const rs=squarify(items,0,0,w,h),tt=document.getElementById('tooltip');for(const r of rs){const d=document.createElement('div');d.className='treemap-block';d.style.cssText=`left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:${r.color}`;if(r.w>35&&r.h>22){const l=document.createElement('div');l.className='label';let s=`<div class="name">${r.label||r.name}</div>`;if(r.w>55&&r.h>32)s+=`<div class="params">${fmtN(r.value)}</div>`;l.innerHTML=s;d.appendChild(l);}d.onmouseenter=e=>{tt.style.display='block';tt.innerHTML=`<div class="tt-name">${r.fullName||r.name}</div><div class="tt-params">${fmtE(r.value)} 参数</div><div class="tt-pct">${(r.value/TOTAL_PARAMS*100).toFixed(2)}% | ${fmtB(r.value*2)} bf16</div>${r.desc?'<div class="tt-pct" style="margin-top:4px">'+r.desc+'</div>':''}`};d.onmousemove=e=>{tt.style.left=(e.clientX+15)+'px';tt.style.top=(e.clientY+15)+'px'};d.onmouseleave=()=>tt.style.display='none';el.appendChild(d);}}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const items=[];
+  items.push({name:'embed_tokens',label:'embed',fullName:'model.embed_tokens',value:VOCAB*HIDDEN,color:COLORS.embed,desc:'词嵌入查表'});
+  items.push({name:'lm_head',label:'lm_head',fullName:'lm_head',value:VOCAB*HIDDEN,color:COLORS.lm,desc:'输出投影→logits'});
+  for(let i=0;i<32;i++){const isL=MIXER_TYPES[i]!=='minicpm4';const cs=isL?lightningParams():minicpm4Params();const t=cs.reduce((s,c)=>s+c.p,0);items.push({name:`L${i}`,label:`L${i} ${isL?'⚡':'🔍'}`,fullName:`Layer ${i} (${isL?'lightning':'minicpm4'})`,value:t,color:isL?`hsl(${210+(i%8)*3},55%,${28+(i%4)*4}%)`:`hsl(${0+(i%8)*5},50%,${28+(i%4)*4}%)`,desc:`${fmtE(t)} params`});}
+  renderTM(document.getElementById('treemap'),items,1360,480);
+
+  // Legend
+  const lItems=[['qkv_proj',COLORS.qkv],['o_proj',COLORS.o],['o_gate/z_proj',COLORS.z],['gate_up (MLP)',COLORS.gup],['down (MLP)',COLORS.down],['Norms',COLORS.norms],['embed',COLORS.embed],['lm_head',COLORS.lm]];
+  for(const el of [document.getElementById('legend')]){for(const[n,c]of lItems){const d=document.createElement('div');d.className='legend-item';d.innerHTML=`<div class="legend-color" style="background:${c}"></div>${n}`;el.appendChild(d);}}
+
+  // Layer bars
+  const bc=document.getElementById('layer-bars');const maxP=lightningParams().reduce((s,c)=>s+c.p,0);const bw=950;
+  for(const[nm,p,c]of[['embed_tokens',VOCAB*HIDDEN,COLORS.embed],['lm_head',VOCAB*HIDDEN,COLORS.lm]]){const r=document.createElement('div');r.className='layer-bar-row';r.innerHTML=`<div class="layer-bar-label">${nm}</div><div class="layer-bar" style="width:${p/maxP*bw}px"><div class="layer-bar-seg" style="background:${c};width:100%"></div></div><div class="layer-bar-total">${fmtN(p)}</div>`;bc.appendChild(r);}
+  for(let i=0;i<32;i++){const isL=MIXER_TYPES[i]!=='minicpm4';const cs=isL?lightningParams():minicpm4Params();const t=cs.reduce((s,c)=>s+c.p,0);const r=document.createElement('div');r.className='layer-bar-row';const lb=document.createElement('div');lb.className='layer-bar-label';lb.style.color=isL?'#4a90d9':'#e74c3c';lb.textContent=`Layer ${i} ${isL?'⚡':'🔍'}`;const br=document.createElement('div');br.className='layer-bar';br.style.width=(t/maxP*bw)+'px';for(const c of cs){const s=document.createElement('div');s.className='layer-bar-seg';s.style.background=c.c;s.style.width=(c.p/t*100)+'%';s.title=`${c.n}: ${fmtE(c.p)}`;br.appendChild(s);}const tl=document.createElement('div');tl.className='layer-bar-total';tl.textContent=fmtN(t);r.appendChild(lb);r.appendChild(br);r.appendChild(tl);bc.appendChild(r);}
+  const l2=document.getElementById('legend2');l2.innerHTML='<div class="legend-item">⚡ Lightning</div><div class="legend-item">🔍 MiniCPM4</div>';for(const[n,c]of lItems.slice(0,6)){const d=document.createElement('div');d.className='legend-item';d.innerHTML=`<div class="legend-color" style="background:${c}"></div>${n}`;l2.appendChild(d);}
+
+  // Memory table
+  const ctxs=[1024,4096,8192,16384,32768,65536,131072,163840];
+  const kvPT=M4_KV*HEAD_DIM*2*8*2;const stPR=LN_KV*HEAD_DIM*HEAD_DIM*24*2;const wB=TOTAL_PARAMS*2;const w4B=TOTAL_PARAMS/2;
+  let h='<table class="mem-table"><tr><th>Context</th><th>权重(bf16)</th><th>权重(W4)</th><th>KV Cache<br><small>8层×2kv头</small></th><th>State<br><small>24层×(32,128,128)</small></th><th>激活峰值</th><th>总计(bf16)</th><th>总计(W4)</th></tr>';
+  for(const c of ctxs){const kv=c*kvPT;const act=c*HIDDEN*2*2+c*INTERMEDIATE*2*2;const tb=wB+kv+stPR+act;const tw=w4B+kv+stPR+act;const mx=48*1024**3;h+=`<tr><td style="text-align:left;font-weight:600">${c.toLocaleString()}</td><td>${fmtB(wB)}</td><td>${fmtB(w4B)}</td><td>${fmtB(kv)}</td><td>${fmtB(stPR)}</td><td>~${fmtB(act)}</td><td><span class="bar-in-cell" style="width:${Math.min(tb/mx*100,100)*1.5}px;background:${tb/mx>0.9?'#e74c3c':'#4a90d9'}"></span>${fmtB(tb)}</td><td><span class="bar-in-cell" style="width:${Math.min(tw/mx*100,100)*1.5}px;background:${tw/mx>0.9?'#e74c3c':'#27ae60'}"></span>${fmtB(tw)}</td></tr>`;}
+  h+='</table><div style="font-size:11px;color:#666;margin-top:8px">KV Cache = 2 heads × 128 dim × 2(K+V) × 8 layers × 2 bytes/token | State = 32 heads × 128 × 128 × 24 layers × 2 bytes/请求 (固定!) | 假设 48GB 显存</div>';
+  document.getElementById('mem-chart').innerHTML=h;
+});
+</script>
+</body>
+</html>
