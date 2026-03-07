@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MiniCPM-SALA — Complete Blueprint</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+:root{--bg:#060a10;--bg2:#0c1018;--bg3:#111822;--bg4:#18212e;--bg5:#1e293b;--border:#1c2940;--border2:#283c5a;--text:#d0dce8;--text2:#8096ae;--text3:#4a6180;--cyan:#22d3ee;--red:#f87171;--green:#4ade80;--yellow:#fbbf24;--purple:#a78bfa;--pink:#f472b6;--orange:#fb923c;--blue:#60a5fa;--teal:#2dd4bf}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.65}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.page{max-width:1400px;margin:0 auto;padding:0 32px 80px}
+.hero{padding:48px 0 32px;border-bottom:1px solid var(--border);margin-bottom:48px}
+.hero h1{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:13px;color:var(--text2);margin-top:6px;font-family:'JetBrains Mono',monospace}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.badge{padding:4px 12px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;border:1px solid}
+.sl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:4px;display:inline-block;margin-bottom:8px}
+.st{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;margin-bottom:6px}
+.sd{color:var(--text2);font-size:13px;margin-bottom:28px;max-width:900px}
+hr.div{border:none;border-top:1px solid var(--border);margin:56px 0}
+.dia{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px 20px;position:relative;margin:10px 0}
+.dia.ac{border-left:3px solid var(--cyan)}.dia.ar{border-left:3px solid var(--red)}.dia.ag{border-left:3px solid var(--green)}.dia.ay{border-left:3px solid var(--yellow)}.dia.ap{border-left:3px solid var(--purple)}.dia.ao{border-left:3px solid var(--orange)}.dia.ab{border-left:3px solid var(--blue)}
+.dt{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.f{font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:10px 14px;margin:8px 0;overflow-x:auto;line-height:1.8}
+.f .c{color:var(--text3)}.f .v{color:var(--cyan)}.f .n{color:var(--yellow)}.f .o{color:var(--text2)}.f .d{color:var(--pink)}.f .k{color:var(--purple)}.f .g{color:var(--green)}
+.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;gap:4px}
+.ch{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.cl2{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.25)}
+.cl1{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.25)}
+.cr{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25)}
+.cm{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.25)}
+.cla{background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25)}
+.cg{background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.25)}
+.flow-d{display:flex;flex-direction:column;align-items:center;margin:0}
+.arr{width:2px;height:28px;background:linear-gradient(180deg,var(--border2),var(--border))}
+.arrh{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--border2)}
+.arrl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin:2px 0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+@media(max-width:1100px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.stat{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px 16px}
+.stat-l{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-family:'JetBrains Mono',monospace}
+.stat-v{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:2px}
+.stat-n{font-size:11px;color:var(--text3);margin-top:2px}
+.ls{display:flex;gap:3px;margin:12px 0;flex-wrap:wrap}
+.lc{width:36px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;cursor:default}
+.lc.mc{background:rgba(248,113,113,.2);color:var(--red);border:1px solid rgba(248,113,113,.35)}
+.lc.la{background:rgba(34,211,238,.2);color:var(--cyan);border:1px solid rgba(34,211,238,.35)}
+.wb{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:24px;margin:16px 0;overflow-x:auto}
+.wb h4{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;margin-bottom:16px}
+.mr{display:flex;align-items:center;gap:12px;margin:10px 0;flex-wrap:wrap}
+.mb{border-radius:5px;padding:6px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:60px;border:1px solid}
+.mb .mn{font-weight:700;font-size:11px}.mb .md{font-size:9px;opacity:.7}.mb .ms{font-size:9px;opacity:.5}
+.mo{font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--text3);font-weight:300}
+.mp{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3);color:var(--purple)}
+.mc_{background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.3);color:var(--cyan)}
+.mr_{background:rgba(248,113,113,.1);border-color:rgba(248,113,113,.3);color:var(--red)}
+.mg{background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.3);color:var(--green)}
+.my{background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.3);color:var(--yellow)}
+.mpk{background:rgba(244,114,182,.1);border-color:rgba(244,114,182,.3);color:var(--pink)}
+.mog{background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.3);color:var(--orange)}
+.mbl{background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:var(--blue)}
+.mgy{background:rgba(100,116,139,.1);border-color:rgba(100,116,139,.3);color:var(--text2)}
+.sn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0}
+.note{background:var(--bg4);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin:8px 0;font-size:12px;color:var(--text2);line-height:1.7}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;padding:8px 12px;background:var(--bg4);border-bottom:1px solid var(--border);color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.tbl td{padding:8px 12px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace}
+.tbl tr:hover{background:var(--bg3)}
+.rb{border:1px dashed;border-radius:8px;padding:20px;margin:12px 0;position:relative}
+.rl{position:absolute;top:-10px;left:16px;background:var(--bg2);padding:0 8px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600}
+.afb{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:16px;margin:12px 0}
+.afb h5{font-family:'JetBrains Mono',monospace;font-size:12px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.ml{border-radius:8px;padding:16px;margin:8px 0;border:1px solid}
+.ml h5{font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HERO -->
+<div class="hero">
+  <h1>MiniCPM-SALA — Complete Blueprint</h1>
+  <div class="hero-sub">Every weight, every kernel, every memory access &bull; From token ID to "42"</div>
+  <div class="hero-badges">
+    <div class="badge" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">9.48B params &bull; 18.95GB bf16</div>
+    <div class="badge" style="color:var(--red);border-color:rgba(248,113,113,.3)">8× minicpm4 (softmax GQA 32:2)</div>
+    <div class="badge" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">24× lightning (Simple GLA 32:32)</div>
+    <div class="badge" style="color:var(--green);border-color:rgba(74,222,128,.3)">hidden=4096 &bull; heads=32 &bull; d=128</div>
+    <div class="badge" style="color:var(--yellow);border-color:rgba(251,191,36,.3)">vocab=73,448 &bull; max_pos=524,288</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- ARCHITECTURE OVERVIEW -->
+<!-- ═══════════════════════════════════════ -->
+<div class="sl" style="background:rgba(34,211,238,.1);color:var(--cyan)">Architecture</div>
+<div class="st">Model Overview</div>
+<div class="sd">MiniCPM-SALA is a hybrid: 8 layers use softmax attention (with sparse patterns for long context via infllmv2 CUDA kernels), 24 layers use Simple Gated Linear Attention (constant-memory). The serving framework is SGLang with a custom <code>MiniCPMHybridReqToTokenPool</code> that manages KV cache + compressed K1/K2 tables + GLA recurrent states.</div>
+
+<div class="g4" style="margin-bottom:24px">
+  <div class="stat"><div class="stat-l">Parameters</div><div class="stat-v" style="color:var(--cyan)">9,477,203,968</div><div class="stat-n">18.95 GB BFloat16</div></div>
+  <div class="stat"><div class="stat-l">Hidden</div><div class="stat-v" style="color:var(--pink)">4,096</div><div class="stat-n">32 heads × 128 dim</div></div>
+  <div class="stat"><div class="stat-l">Context</div><div class="stat-v" style="color:var(--yellow)">524,288</div><div class="stat-n">Sparse attn &gt; 8192</div></div>
+  <div class="stat"><div class="stat-l">Residual Scale</div><div class="stat-v" style="color:var(--green)">0.24749</div><div class="stat-n">1.4/√32 (µP)</div></div>
+</div>
+
+<!-- Layer Map -->
+<div class="wb">
+  <h4>32-Layer Map</h4>
+  <div class="ls" id="layerStrip"></div>
+  <div style="margin-top:10px;font-size:12px;color:var(--text2)">
+    <span class="chip cm">minicpm4</span> Layers <b style="color:var(--red)">0, 9, 16, 17, 22, 29, 30, 31</b> — softmax GQA, no RoPE, o_gate, KV cache + sparse for seq&gt;8192
+    &nbsp;
+    <span class="chip cla">lightning</span> 24 other layers — Simple GLA, RoPE, QK norm, z_proj gate, o_norm, fixed 1MB state/layer
+  </div>
+</div>
+
+<!-- Comparison -->
+<div class="wb">
+  <h4>minicpm4 vs lightning: Every Difference</h4>
+  <table class="tbl">
+    <thead><tr><th></th><th style="color:var(--red)">minicpm4 (8 layers)</th><th style="color:var(--cyan)">lightning-attn (24 layers)</th></tr></thead>
+    <tbody>
+      <tr><td>Attention</td><td>Softmax GQA via FlashAttention3 + infllmv2</td><td>Simple GLA via fla kernels (chunk + recurrent)</td></tr>
+      <tr><td>Q / KV heads</td><td style="color:var(--pink)">32 / 2 (16× GQA)</td><td style="color:var(--pink)">32 / 32</td></tr>
+      <tr><td>RoPE</td><td>❌ attn_use_rope=false</td><td>✅ θ=10,000</td></tr>
+      <tr><td>QK Norm</td><td>❌</td><td>✅ RMSNorm(128)</td></tr>
+      <tr><td>Output Gate</td><td>o_gate: σ(h@W) ⊙ out, W=[4096×4096]</td><td>z_proj: σ(h@W) ⊙ out, W=[4096×4096]</td></tr>
+      <tr><td>Output Norm</td><td>❌</td><td>✅ RMSNorm(4096) o_norm</td></tr>
+      <tr><td>Decode State</td><td>KV cache: 1KB/token/layer (grows)</td><td>Fixed state: [32×128×128] = 1MB/layer</td></tr>
+      <tr><td>Long ctx</td><td>seq≤8192: dense (full attention).<br>seq&gt;8192: same attention math, but <b>block mask</b> from infllmv2 skips unimportant 64-token blocks</td><td>Recurrent — O(1) per token always, no mask needed</td></tr>
+      <tr><td>Params/layer</td><td style="color:var(--yellow)">253,763,584 (484 MB)</td><td style="color:var(--yellow)">285,225,216 (544 MB)</td></tr>
+      <tr><td>Backend class</td><td><code>FlashAttentionBackend</code></td><td><code>SimpleGLAAttnBackend</code></td></tr>
+      <tr><td>Kernel (decode)</td><td><code>flash_attn_with_kvcache</code> (FA3)</td><td><code>fused_recurrent_simple_gla</code> (fla)</td></tr>
+      <tr><td>Kernel (prefill)</td><td><code>flash_attn_with_kvcache</code> + sparse: <code>infllmv2_attn_stage1</code></td><td><code>chunk_simple_gla</code> (fla, chunk_size=64)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- WHY BOTH: SOFTMAX vs LINEAR -->
+<!-- ═══════════════════════════════════════ -->
+<div class="sl" style="background:rgba(244,114,182,.1);color:var(--pink)">Deep Understanding</div>
+<div class="st">Why Not Just Use Linear Attention Everywhere?</div>
+<div class="sd">Linear attention IS just reordering the parentheses: <code>(QK)V = Q(KV)</code>. Matrix multiply is associative. So why keep softmax at all? Because <b>softmax does something that linear attention fundamentally cannot</b>.</div>
+
+<div class="wb">
+  <h4>The Core Difference: Sharp vs Blurry</h4>
+
+  <div class="g2" style="margin:16px 0">
+    <!-- Softmax -->
+    <div style="border:2px solid var(--red);border-radius:8px;padding:16px;background:rgba(248,113,113,.03)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--red);margin-bottom:12px">Softmax Attention — SHARP retrieval</div>
+      <div class="f" style="font-size:11px">
+        <span class="c">// "What is the capital of France?"</span><br>
+        <span class="c">// Q scans ALL tokens individually:</span><br><br>
+        scores <span class="o">=</span> Q <span class="o">@</span> K<sup>T</sup> <span class="o">=</span> [<span class="n">0.1</span>, <span class="n">0.2</span>, <span class="n">0.1</span>, ..., <span class="n">8.9</span>, ..., <span class="n">0.3</span>]<br>
+        <span class="c">//                                    ^^^</span><br>
+        <span class="c">//                          "capital of France is Paris"</span><br><br>
+        <span class="c">// softmax turns small differences into HUGE differences:</span><br>
+        probs <span class="o">=</span> softmax(scores)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="o">=</span> [<span class="n">0.00</span>, <span class="n">0.00</span>, <span class="n">0.00</span>, ..., <span class="g">0.97</span>, ..., <span class="n">0.00</span>]<br>
+        <span class="c">//                                    ^^^^</span><br>
+        <span class="c">//               97% weight on the ONE relevant token!</span><br><br>
+        output <span class="o">≈</span> V[that one token]   <span class="c">// precise retrieval → "Paris" ✓</span>
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-top:8px">
+        <b style="color:var(--red)">exp() is the key.</b> softmax(x)ᵢ = exp(xᵢ) / Σexp(xⱼ). The exponential makes large scores dominate exponentially — it's a "winner-take-all" filter. Even a small score gap becomes a huge probability gap.
+      </div>
+    </div>
+
+    <!-- Linear -->
+    <div style="border:2px solid var(--cyan);border-radius:8px;padding:16px;background:rgba(34,211,238,.03)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:12px">Linear Attention — BLURRY summary</div>
+      <div class="f" style="font-size:11px">
+        <span class="c">// Same question, but linear attention doesn't scan tokens individually.</span><br>
+        <span class="c">// It queries a compressed state matrix S [128×128]:</span><br><br>
+        output <span class="o">=</span> Q <span class="o">@</span> S   <span class="c">// S is a blend of ALL past tokens</span><br><br>
+        <span class="c">// S = α^n·k₁ᵀ⊗v₁ + α^(n-1)·k₂ᵀ⊗v₂ + ... + k_nᵀ⊗v_n</span><br>
+        <span class="c">//     ^^^^^^^^^^^^                            ^^^^^^^^^</span><br>
+        <span class="c">//     heavily decayed (old)               full weight (recent)</span><br><br>
+        <span class="c">// "Paris" and "Tokyo" and everything else is mixed in S</span><br>
+        <span class="c">// Can't say "give me EXACTLY what token #47,832 said"</span><br>
+        <span class="c">// Output is a weighted blend → might get "Paris", might get "Tokyo"</span>
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-top:8px">
+        <b style="color:var(--cyan)">No exp(), no winner-take-all.</b> Linear attention retrieves a weighted mix from the state. Like a blurry photo — you see the general picture but can't read fine print.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wb">
+  <h4>Why Linear Attention Loses Information: Two Problems</h4>
+
+  <!-- Problem 1: Decay -->
+  <div style="border:1px solid rgba(251,191,36,.3);border-radius:8px;padding:16px;margin:12px 0;background:rgba(251,191,36,.03)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--yellow);margin-bottom:10px">Problem 1: Exponential Decay Kills Old Information</div>
+    <div class="f" style="font-size:11px">
+      <span class="c">// Unroll the recurrence to see what S actually contains:</span><br><br>
+      After token 1: S <span class="o">=</span> α·S₀ <span class="o">+</span> k₁ᵀ⊗v₁<br>
+      After token 2: S <span class="o">=</span> α²·S₀ <span class="o">+</span> <span class="n">α¹</span>·k₁ᵀ⊗v₁ <span class="o">+</span> <span class="n">α⁰</span>·k₂ᵀ⊗v₂<br>
+      After token 3: S <span class="o">=</span> α³·S₀ <span class="o">+</span> <span class="n">α²</span>·k₁ᵀ⊗v₁ <span class="o">+</span> <span class="n">α¹</span>·k₂ᵀ⊗v₂ <span class="o">+</span> <span class="n">α⁰</span>·k₃ᵀ⊗v₃<br>
+      ...<br>
+      After token n: S <span class="o">=</span> αⁿ·S₀ <span class="o">+</span> Σᵢ <span class="n">αⁿ⁻ⁱ</span> · kᵢᵀ⊗vᵢ<br><br>
+      <span class="c">// S is a WEIGHTED SUM of all past outer products.</span><br>
+      <span class="c">// Recent tokens have weight ≈ 1, old tokens have weight → 0.</span><br>
+      <span class="c">// Nothing is "overwritten" — it's BLENDED with exponential decay.</span>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-top:10px">Concrete decay over distance:</div>
+    <table class="tbl" style="margin-top:6px">
+      <thead><tr><th>Tokens ago</th><th>Head 0 (α=0.40)</th><th>Head 15 (α=0.80)</th><th>Head 31 (α=0.999)</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td style="color:var(--green)">0.40 (40%)</td><td style="color:var(--green)">0.80 (80%)</td><td style="color:var(--green)">0.999 (99.9%)</td></tr>
+        <tr><td>10</td><td style="color:var(--yellow)">0.000105</td><td style="color:var(--yellow)">0.107</td><td style="color:var(--green)">0.990</td></tr>
+        <tr><td>100</td><td style="color:var(--red)">≈ 0</td><td style="color:var(--red)">2×10⁻¹⁰</td><td style="color:var(--yellow)">0.905</td></tr>
+        <tr><td>1,000</td><td style="color:var(--red)">≈ 0</td><td style="color:var(--red)">≈ 0</td><td style="color:var(--yellow)">0.368</td></tr>
+        <tr><td>10,000</td><td style="color:var(--red)">≈ 0</td><td style="color:var(--red)">≈ 0</td><td style="color:var(--red)">0.0000454</td></tr>
+        <tr><td>100,000</td><td style="color:var(--red)">≈ 0</td><td style="color:var(--red)">≈ 0</td><td style="color:var(--red)">≈ 0</td></tr>
+      </tbody>
+    </table>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px">
+      Head 0 forgets everything beyond ~5 tokens. Head 31 remembers ~1000 tokens well. <b>No head can remember 100K+ tokens.</b> The information isn't "deleted" — it's multiplied by a number so small it's below float precision.
+    </div>
+  </div>
+
+  <!-- Problem 2: Fixed rank -->
+  <div style="border:1px solid rgba(167,139,250,.3);border-radius:8px;padding:16px;margin:12px 0;background:rgba(167,139,250,.03)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--purple);margin-bottom:10px">Problem 2: Fixed Capacity — Even Without Decay</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Even if α = 1.0 (no decay at all), there's a deeper problem:</div>
+    <div class="f" style="font-size:11px">
+      <span class="c">// With α = 1.0, S is just a sum of outer products:</span><br>
+      S <span class="o">=</span> k₁ᵀ⊗v₁ <span class="o">+</span> k₂ᵀ⊗v₂ <span class="o">+</span> ... <span class="o">+</span> k₁₀₀₀₀₀ᵀ⊗v₁₀₀₀₀₀<br><br>
+      <span class="c">// S is [128 × 128] = 16,384 values</span><br>
+      <span class="c">// Each kᵀ⊗v is a RANK-1 matrix (outer product of two 128-vectors)</span><br>
+      <span class="c">// Maximum rank of S = 128 (can't exceed matrix dimension)</span><br><br>
+      <span class="c">// After ~128 linearly independent tokens: S is "full rank"</span><br>
+      <span class="c">// Any new kᵀ⊗v INTERFERES with existing information</span><br>
+      <span class="c">// 100,000 directions crammed into 128-dimensional space → collision</span>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:16px;margin-top:12px;flex-wrap:wrap">
+      <!-- Paint analogy -->
+      <div style="flex:1;min-width:250px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--purple);margin-bottom:6px">🎨 Paint Bucket Analogy</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.7">
+          S is a bucket of paint (128×128 = fixed capacity).<br>
+          Each token adds a drop of colored paint (kᵀ⊗v).<br><br>
+          After 128 unique colors: bucket is "full"<br>
+          After 100,000 drops: everything blends into <b style="color:var(--yellow)">brown mud</b><br>
+          You can't extract "that blue drop from 50,000 steps ago"<br><br>
+          Decay (α &lt; 1) makes it worse: old drops also <b style="color:var(--red)">evaporate</b>
+        </div>
+      </div>
+      <!-- KV cache contrast -->
+      <div style="flex:1;min-width:250px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--red);margin-bottom:6px">📦 KV Cache Contrast (Softmax)</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.7">
+          KV cache stores each token <b>SEPARATELY</b>:<br><br>
+          K_cache[0] = k₁ &nbsp;&nbsp;← intact, independent<br>
+          K_cache[1] = k₂ &nbsp;&nbsp;← intact, independent<br>
+          ...<br>
+          K_cache[99999] = k₁₀₀₀₀₀<br><br>
+          Query computes score per token individually.<br>
+          Softmax picks the best → <b style="color:var(--green)">EXACT retrieval</b><br>
+          No blending. No decay. No rank limit.<br>
+          Just costs <b style="color:var(--red)">more memory</b>.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wb">
+  <h4>Why MiniCPM-SALA Uses Both — The Strategic Placement</h4>
+
+  <div style="font-size:12px;color:var(--text2);margin-bottom:16px">
+    The 8 minicpm4 layers are placed at specific positions to act as "anchor points" where the model can precisely retrieve individual tokens from the full KV cache. The 24 lightning layers in between do fast, cheap feature combination that doesn't need per-token precision.
+  </div>
+
+  <!-- Layer placement visual -->
+  <div style="border:1px solid var(--border);border-radius:8px;padding:16px;background:var(--bg);margin-bottom:16px">
+    <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:12px">
+      <div style="width:38px;height:34px;background:rgba(248,113,113,.3);border:1px solid rgba(248,113,113,.5);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);font-weight:700" title="Layer 0">0</div>
+      <div style="width:38px;height:34px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.25);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan)">1</div>
+      <div style="width:38px;height:34px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.25);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan)">2</div>
+      <div style="width:38px;height:34px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.25);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan)">3-8</div>
+      <div style="width:38px;height:34px;background:rgba(248,113,113,.3);border:1px solid rgba(248,113,113,.5);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);font-weight:700">9</div>
+      <div style="width:38px;height:34px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.25);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan)">10-15</div>
+      <div style="width:38px;height:34px;background:rgba(248,113,113,.3);border:1px solid rgba(248,113,113,.5);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);font-weight:700">16</div>
+      <div style="width:38px;height:34px;background:rgba(248,113,113,.3);border:1px solid rgba(248,113,113,.5);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);font-weight:700">17</div>
+      <div style="width:38px;height:34px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.25);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan)">18-21</div>
+      <div style="width:38px;height:34px;background:rgba(248,113,113,.3);border:1px solid rgba(248,113,113,.5);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);font-weight:700">22</div>
+      <div style="width:38px;height:34px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.25);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan)">23-28</div>
+      <div style="width:38px;height:34px;background:rgba(248,113,113,.3);border:1px solid rgba(248,113,113,.5);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);font-weight:700">29</div>
+      <div style="width:38px;height:34px;background:rgba(248,113,113,.3);border:1px solid rgba(248,113,113,.5);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);font-weight:700">30</div>
+      <div style="width:38px;height:34px;background:rgba(248,113,113,.3);border:1px solid rgba(248,113,113,.5);border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);font-weight:700">31</div>
+    </div>
+    <div class="f" style="font-size:10px">
+      <span style="color:var(--red)">Layer 0</span>:  <span class="c">First layer — precise token retrieval for raw input features</span><br>
+      <span style="color:var(--cyan)">Layers 1-8</span>: <span class="c">Cheap feature combination, pattern matching</span><br>
+      <span style="color:var(--red)">Layer 9</span>:  <span class="c">"Anchor" — re-ground representations to specific tokens</span><br>
+      <span style="color:var(--cyan)">Layers 10-15</span>: <span class="c">More feature extraction</span><br>
+      <span style="color:var(--red)">Layers 16-17</span>: <span class="c">Double anchor at middle — critical for multi-step reasoning</span><br>
+      <span style="color:var(--cyan)">Layers 18-21</span>: <span class="c">High-level reasoning</span><br>
+      <span style="color:var(--red)">Layer 22</span>:  <span class="c">Re-ground again before final processing</span><br>
+      <span style="color:var(--cyan)">Layers 23-28</span>: <span class="c">Final feature refinement</span><br>
+      <span style="color:var(--red)">Layers 29-31</span>: <span class="c">3× anchors at end — precise token selection for final answer</span>
+    </div>
+  </div>
+
+  <!-- The tradeoff -->
+  <div style="border:1px solid rgba(74,222,128,.3);border-radius:8px;padding:16px;background:rgba(74,222,128,.03)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--green);margin-bottom:10px">The Memory Tradeoff — Why This Matters</div>
+    <table class="tbl">
+      <thead><tr><th>Architecture</th><th>KV Memory at 128K</th><th>Concurrent Reqs (32 GB GPU)</th></tr></thead>
+      <tbody>
+        <tr><td>Pure softmax (32 layers)</td><td style="color:var(--red)">32 × 128K × 1 KB = <b>4 GB</b></td><td style="color:var(--red)">~3 requests</td></tr>
+        <tr style="background:rgba(74,222,128,.05)"><td style="color:var(--green)"><b>Hybrid (8 softmax + 24 GLA)</b></td><td style="color:var(--green)">8 × 128K × 1 KB + 24 MB = <b>1.05 GB</b></td><td style="color:var(--green)"><b>~12 requests</b></td></tr>
+        <tr><td>Pure linear (32 layers)</td><td style="color:var(--cyan)">32 × 1 MB = <b>32 MB</b></td><td style="color:var(--cyan)">~400+ requests</td></tr>
+      </tbody>
+    </table>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px">
+      Pure linear would be 125× cheaper but can't do precise retrieval → bad quality on long-range tasks.
+      Pure softmax has perfect retrieval but 4× more memory → fewer concurrent users.
+      <b style="color:var(--green)">Hybrid gets ~4× the concurrency of pure softmax with minimal quality loss</b> — the softmax "anchors" compensate for linear layers' blurriness.
+    </div>
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- CONCRETE EXAMPLE -->
+<!-- ═══════════════════════════════════════ -->
+<div class="sl" style="background:rgba(251,191,36,.1);color:var(--yellow)">Token Prediction</div>
+<div class="st">"The answer to the universe is" → <span style="color:var(--yellow)">42</span></div>
+<div class="sd">We follow the <b>last token "is"</b> during <b>decode</b> (batch=1). All prior tokens are already encoded in KV caches (8 minicpm4 layers) and recurrent states (24 lightning layers).</div>
+
+<!-- STEP 0: INPUT -->
+<div class="wb">
+  <h4><span class="sn" style="background:rgba(167,139,250,.2);color:var(--purple)">0</span>&nbsp; Token ID for "is"</h4>
+  <div class="f"><span class="c">// scalar int64, e.g. 374 ∈ [0, 73447]</span></div>
+</div>
+
+<!-- STEP 1: EMBEDDING -->
+<div class="flow-d"><div class="arr"></div><div class="arrh"></div></div>
+<div class="wb">
+  <h4><span class="sn" style="background:rgba(167,139,250,.2);color:var(--purple)">1</span>&nbsp; Embedding Lookup + µP Scale</h4>
+  <div class="mr">
+    <div class="mb mgy"><div class="mn">token_id</div><div class="md">scalar</div></div>
+    <div class="mo">→</div>
+    <div class="mb mp"><div class="mn">embed_tokens</div><div class="md">73,448 × 4,096</div><div class="ms">601 MB</div></div>
+    <div class="mo">→</div>
+    <div class="mb mg"><div class="mn">row</div><div class="md">1 × 4,096</div></div>
+    <div class="mo">×</div>
+    <div class="mb my"><div class="mn">12</div><div class="md">scale_emb</div></div>
+    <div class="mo">=</div>
+    <div class="mb mg"><div class="mn">h₀</div><div class="md">1 × 4,096</div></div>
+  </div>
+  <div class="f"><span class="v">h₀</span> <span class="o">=</span> embed_tokens[<span class="n">374</span>] <span class="o">×</span> <span class="n">12</span>   <span class="c">// 300.84M params, NOT tied to lm_head</span></div>
+  <div><span class="chip ch">HBM</span> <span style="font-size:11px;color:var(--text3)">Read 1 row (8KB) from 601MB table — random access</span></div>
+</div>
+
+<!-- STEP 2: 32 LAYERS -->
+<div class="flow-d"><div class="arr"></div><div class="arrh"></div><div class="arrl">h = [1, 4096] bf16</div></div>
+
+<div style="border:2px solid var(--border2);border-radius:12px;padding:28px;margin:16px 0;background:var(--bg2);position:relative">
+  <div style="position:absolute;top:-12px;left:24px;background:var(--bg2);padding:0 12px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--blue)">REPEAT × 32 LAYERS (i = 0…31)</div>
+
+  <!-- ATTENTION RESIDUAL -->
+  <div class="rb" style="border-color:var(--yellow);background:rgba(251,191,36,.02)">
+    <div class="rl" style="color:var(--yellow)">ATTENTION RESIDUAL BLOCK</div>
+
+    <div class="f"><span class="v">residual</span> <span class="o">=</span> <span class="v">h</span></div>
+
+    <!-- RMSNorm -->
+    <div class="dia ay" style="margin:12px 0">
+      <div class="dt" style="color:var(--yellow)"><span class="sn" style="background:rgba(251,191,36,.15);color:var(--yellow)">A</span> RMSNorm (input_layernorm)</div>
+      <div class="f" style="font-size:11px">
+        <span class="c">// RMSNorm = Root Mean Square Layer Normalization</span><br>
+        <span class="c">// WHY: Normalizes activations so they don't explode/vanish across 32 layers.</span><br>
+        <span class="c">//   Unlike LayerNorm, it does NOT subtract the mean — only divides by RMS.</span><br>
+        <span class="c">//   Simpler and faster (no mean computation), works just as well in practice.</span><br><br>
+        <span class="c">// Input: h = [4096] vector (one value per hidden dimension)</span><br><br>
+        <span class="c">// Step 1: Compute Root Mean Square</span><br>
+        <span class="v">rms</span> <span class="o">=</span> √( (h[0]² + h[1]² + ... + h[4095]²) / <span class="n">4096</span> + <span class="n">1e-6</span> )<br>
+        <span class="c">//       └── sum of squares ──────────────┘   └──── ε prevents division by zero</span><br>
+        <span class="c">//       = √( mean(h²) + ε )</span><br><br>
+        <span class="c">// Step 2: Normalize (make unit-scale)</span><br>
+        <span class="v">h_norm</span> <span class="o">=</span> <span class="v">h</span> <span class="o">/</span> <span class="v">rms</span>   <span class="c">// [4096] / scalar → [4096], each element divided by same rms</span><br><br>
+        <span class="c">// Step 3: Scale by learned weight (element-wise)</span><br>
+        <span class="v">h</span> <span class="o">=</span> <span class="v">h_norm</span> <span class="o">⊙</span> <span class="v">weight</span>   <span class="c">// [4096] ⊙ [4096] → [4096]</span><br>
+        <span class="c">//   weight is a learned parameter [4096] — allows each dimension to have its own scale</span><br>
+        <span class="c">//   8 KB in bf16, stays in L2 cache</span>
+      </div>
+    </div>
+
+    <!-- Two attention types side by side -->
+    <div class="g2" style="margin:16px 0">
+
+      <!-- ═══ MINICPM4 ═══ -->
+      <div class="dia ar">
+        <div class="dt" style="color:var(--red)"><span class="sn" style="background:rgba(248,113,113,.15);color:var(--red)">B1</span> minicpm4 Attention <span class="chip cm">8 layers</span></div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Softmax GQA 32:2 via <code>FlashAttentionBackend</code>. Sparse only changes <b>which tokens are attended</b>.</div>
+
+        <div class="f" style="font-size:11px">
+          <span class="c">══════════════════════════════════════════</span><br>
+          <span class="c">STEP 1: QKV Projection (always the same)</span><br>
+          <span class="c">══════════════════════════════════════════</span><br>
+          q <span class="o">=</span> h <span class="o">@</span> W_q<sup>T</sup>   <span class="c">// [1,4096]×[4096,4096] → [1,4096] → reshape [32 heads, 128 dim]   32MB</span><br>
+          k <span class="o">=</span> h <span class="o">@</span> W_k<sup>T</sup>   <span class="c">// [1,4096]×[4096,256]  → [1,256]  → reshape [2 heads, 128 dim]    2MB</span><br>
+          v <span class="o">=</span> h <span class="o">@</span> W_v<sup>T</sup>   <span class="c">// [1,4096]×[4096,256]  → [1,256]  → reshape [2 heads, 128 dim]    2MB</span><br>
+          <span class="c">// NO RoPE (attn_use_rope=false)</span><br><br>
+
+          <span class="c">══════════════════════════════════════════</span><br>
+          <span class="c">STEP 2: Append new k,v to KV cache (always the same)</span><br>
+          <span class="c">══════════════════════════════════════════</span><br>
+          k_buffer[layer_id][loc] <span class="o">=</span> k   <span class="c">// [2 heads, 128 dim]</span><br>
+          v_buffer[layer_id][loc] <span class="o">=</span> v   <span class="c">// [2 heads, 128 dim]</span><br><br>
+
+          <span class="c">══════════════════════════════════════════</span><br>
+          <span class="c">STEP 3: ★ THE ATTENTION — this is where sparse differs ★</span><br>
+          <span class="c">══════════════════════════════════════════</span>
+        </div>
+
+        <!-- Dense path -->
+        <div style="border:1px solid rgba(74,222,128,.3);border-radius:6px;padding:12px;margin:8px 0;background:rgba(74,222,128,.03)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px">PATH A: seq_len ≤ 8,192 → Dense (standard FlashAttention3)</div>
+          <div class="f" style="font-size:11px;margin:4px 0">
+            <span class="c">// Q attends to ALL tokens in KV cache — nothing special</span><br>
+            out <span class="o">=</span> flash_attn_with_kvcache(<br>
+            &nbsp;&nbsp;q, k_cache, v_cache,<br>
+            &nbsp;&nbsp;page_table, cache_seqlens,<br>
+            &nbsp;&nbsp;scale=<span class="n">0.08839</span>,<br>
+            &nbsp;&nbsp;blockmask=<span class="g">None</span>   <span class="c">// ← no mask, attend to everything</span><br>
+            )<br>
+            <span class="c">// Standard: scores = (Q @ K_all^T) × 0.08839</span><br>
+            <span class="c">//           attn = softmax(scores) @ V_all</span>
+          </div>
+        </div>
+
+        <!-- Sparse path -->
+        <div style="border:1px solid rgba(248,113,113,.3);border-radius:6px;padding:12px;margin:8px 0;background:rgba(248,113,113,.03)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--red);margin-bottom:6px">PATH B: seq_len &gt; 8,192 → Sparse (infllmv2 block mask)</div>
+          <div class="f" style="font-size:11px;margin:4px 0">
+            <span class="c">// ❶ Compress all cached keys into two summary levels</span><br>
+            K1 <span class="o">=</span> mean_pool(K_cache, stride=<span class="n">16</span>, window=<span class="n">32</span>)  <span class="c">// ~seq/16 compressed keys</span><br>
+            K2 <span class="o">=</span> mean_pool(K_cache, stride=<span class="n">64</span>, window=<span class="n">128</span>) <span class="c">// ~seq/64 compressed keys</span><br><br>
+            <span class="c">// ❷ Cheap approximate scoring against compressed keys</span><br>
+            scores <span class="o">=</span> infllmv2_attn_stage1(Q, K1, K2)  <span class="c">// CUDA kernel</span><br><br>
+            <span class="c">// ❸ Pool scores into 64-token blocks, pick top 64</span><br>
+            block_scores <span class="o">=</span> max_pooling_1d_varlen(scores, block_size=<span class="n">64</span>)<br>
+            topk_idx <span class="o">=</span> block_scores.topk(<span class="n">64</span>).indices  <span class="c">// 64 best blocks</span><br><br>
+            <span class="c">// ❹ Convert to uint64 bitmask for the CUDA kernel</span><br>
+            block_mask <span class="o">=</span> topk_to_uint64(topk_idx, max_seqlen_k, <span class="n">64</span>)<br><br>
+            <span class="c">// ❺ SAME attention kernel, but with block mask!</span><br>
+            out <span class="o">=</span> infllm_cuda.varlen_fwd(<br>
+            &nbsp;&nbsp;q, k_cache, v_cache, ...,<br>
+            &nbsp;&nbsp;blockmask=<span class="v">block_mask</span>  <span class="c">// ← ONLY DIFFERENCE: skips masked blocks</span><br>
+            )<br>
+            <span class="c">// Same softmax math, but only on ~6,208 tokens</span><br>
+            <span class="c">// instead of all 524,288 → ~84× fewer blocks!</span>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-top:6px">
+            Attend to: init 64 tokens + local 2,048 + topk 64×64 = <b style="color:var(--red)">≤ 6,208 tokens</b> instead of full seq_len
+          </div>
+        </div>
+
+        <div class="f" style="font-size:11px">
+          <span class="c">══════════════════════════════════════════</span><br>
+          <span class="c">STEP 4: Output Gate + Projection (always the same)</span><br>
+          <span class="c">══════════════════════════════════════════</span><br><br>
+          <span class="c">// WHY a gate? The attention output may contain information from ALL</span><br>
+          <span class="c">// attended tokens, but not all of it is useful for this layer's job.</span><br>
+          <span class="c">// The gate learns to SUPPRESS irrelevant dimensions and AMPLIFY useful ones.</span><br>
+          <span class="c">// Think of it as: "attention found these things, but which ones do I actually need?"</span><br>
+          <span class="c">// Without the gate, every dimension of attention output passes through equally.</span><br>
+          <span class="c">// With the gate, the model can selectively zero out or keep each dimension.</span><br><br>
+          <span class="c">// σ(x) = Sigmoid function = 1 / (1 + exp(-x))</span><br>
+          <span class="c">//   Maps any value → range (0, 1)</span><br>
+          <span class="c">//   σ(-∞) → 0  (fully closed, block this dimension)</span><br>
+          <span class="c">//   σ(0)  → 0.5 (half open)</span><br>
+          <span class="c">//   σ(+∞) → 1  (fully open, pass this dimension through)</span><br><br>
+          <span class="c">// Step 4a: Compute gate values from ORIGINAL h (not attention output!)</span><br>
+          <span class="v">gate_logits</span> <span class="o">=</span> h <span class="o">@</span> W_gate<sup>T</sup>   <span class="c">// [1,4096] × [4096,4096] → [1,4096]   32MB weight</span><br>
+          <span class="v">gate</span> <span class="o">=</span> σ(<span class="v">gate_logits</span>)   <span class="c">// sigmoid([4096]) → [4096], each value in (0,1)</span><br><br>
+          <span class="c">// Step 4b: Apply gate — element-wise multiply</span><br>
+          <span class="v">out</span> <span class="o">=</span> <span class="v">attn_out</span> <span class="o">⊙</span> <span class="v">gate</span>   <span class="c">// [4096] ⊙ [4096] → [4096]</span><br>
+          <span class="c">//   If gate[i] ≈ 0 → out[i] ≈ 0  (suppress this dimension)</span><br>
+          <span class="c">//   If gate[i] ≈ 1 → out[i] ≈ attn_out[i]  (keep this dimension)</span><br><br>
+          <span class="c">// Step 4c: Project back to hidden size</span><br>
+          <span class="v">out</span> <span class="o">=</span> <span class="v">out</span> <span class="o">@</span> W_o<sup>T</sup>   <span class="c">// [1,4096] × [4096,4096] → [1,4096]   32MB weight</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">
+          HBM reads: 36 + 32 + 32 = <b style="color:var(--red)">100 MB</b> weights + KV cache. Sparse adds K1/K2 compression + topk overhead.
+        </div>
+      </div>
+
+      <!-- ═══ LIGHTNING ═══ -->
+      <div class="dia ac">
+        <div class="dt" style="color:var(--cyan)"><span class="sn" style="background:rgba(34,211,238,.15);color:var(--cyan)">B2</span> lightning-attn (Simple GLA) <span class="chip cla">24 layers</span></div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Gated Linear Attention via <code>SimpleGLAAttnBackend</code> → <code>fused_recurrent_simple_gla</code></div>
+
+        <div class="f" style="font-size:11px">
+          <span class="c">── QKV Projection ──</span><br>
+          q,k,v <span class="o">=</span> h <span class="o">@</span> W_q,W_k,W_v  <span class="c">// each [4096×4096] → 3×32MB</span><br>
+          <span class="c">// All produce [32h, 128] (no GQA grouping)</span><br><br>
+          <span class="c">── QK RMSNorm (per-head) ──</span><br>
+          q <span class="o">=</span> RMSNorm(q.reshape(<span class="d">32,128</span>), w=<span class="d">[128]</span>)<br>
+          k <span class="o">=</span> RMSNorm(k.reshape(<span class="d">32,128</span>), w=<span class="d">[128]</span>)<br><br>
+          <span class="c">── RoPE (θ=10000) ──</span><br>
+          q,k <span class="o">=</span> RoPE(q.float(), k.float(), pos).bf16()<br><br>
+          <span class="c">── ★ Simple GLA Recurrence ──</span><br>
+          <span class="c">// Load full state from MambaPool.temporal[layer_idx][mamba_indices]</span><br>
+          <span class="c">// S: [32 heads, 128, 128] = 524,288 values = 1 MB bf16</span><br>
+          <span class="c">// g_gamma: [32] floats — precomputed ALiBi slopes, one per head:</span><br>
+          <span class="c">//   g_gamma[0]  = -0.917  (head 0, slowest decay, longest memory)</span><br>
+          <span class="c">//   g_gamma[1]  = -0.841</span><br>
+          <span class="c">//   ...  </span><br>
+          <span class="c">//   g_gamma[31] = -0.0001 (head 31, fastest decay, shortest memory)</span><br><br>
+          <span class="g">for each head_idx = 0..31 (all 32 heads in parallel on GPU):</span><br><br>
+          &nbsp; <span class="c">// Sizes for ONE head:</span><br>
+          &nbsp; <span class="v">S_h</span>       <span class="c">// [128 × 128] = 16,384 values = 32 KB  — this head's state matrix</span><br>
+          &nbsp; <span class="v">q_h</span>       <span class="c">// [1 × 128] = 128 values                — this head's query vector</span><br>
+          &nbsp; <span class="v">k_h</span>       <span class="c">// [1 × 128] = 128 values                — this head's key vector</span><br>
+          &nbsp; <span class="v">v_h</span>       <span class="c">// [1 × 128] = 128 values                — this head's value vector</span><br><br>
+          &nbsp; <span class="c">// α is a SCALAR — g_gamma[head_idx] is one float from a [32] array</span><br>
+          &nbsp; <span class="v">α</span> <span class="o">=</span> exp(g_gamma[head_idx])   <span class="c">// exp(one float) = one float</span><br>
+          &nbsp; <span class="c">// e.g. head 0:  α = exp(-0.917) ≈ 0.40  (forgets 60% each step)</span><br>
+          &nbsp; <span class="c">// e.g. head 31: α = exp(-0.0001) ≈ 1.00  (remembers almost everything)</span><br><br>
+          &nbsp; <span class="c">// ❶ Decay: scale down old memory (scalar × matrix)</span><br>
+          &nbsp; <span class="v">S_h</span> <span class="o">=</span> <span class="v">α</span> <span class="o">·</span> <span class="v">S_h</span>          <span class="c">// scalar × [128,128] → [128,128]</span><br><br>
+          &nbsp; <span class="c">// ❷ Update: add new information via outer product</span><br>
+          &nbsp; <span class="v">S_h</span> <span class="o">=</span> <span class="v">S_h</span> <span class="o">+</span> <span class="v">k_h</span><sup>T</sup> <span class="o">⊗</span> <span class="v">v_h</span>  <span class="c">// [128,1] × [1,128] = [128,128] outer product, added to state</span><br><br>
+          &nbsp; <span class="c">// ❸ Query: read from state</span><br>
+          &nbsp; <span class="v">o_h</span> <span class="o">=</span> <span class="v">q_h</span> <span class="o">@</span> <span class="v">S_h</span> <span class="o">×</span> <span class="n">0.08839</span>  <span class="c">// [1,128] @ [128,128] × scale = [1,128] output</span><br><br>
+          <span class="c">// Concat all 32 heads: [32 × 128] = [4096] output</span><br>
+          <span class="c">// Save updated S back to MambaPool.temporal</span>
+        </div>
+
+        <!-- Visual: GLA state update for one head -->
+        <div style="background:var(--bg);border:1px solid rgba(34,211,238,.2);border-radius:6px;padding:16px;margin:10px 0">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--cyan);margin-bottom:12px">One head's recurrence (head_idx=0..31, shown for one):</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <!-- α -->
+            <div style="text-align:center">
+              <div style="width:28px;height:28px;background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.4);border-radius:50%;display:flex;align-items:center;justify-content:center">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--yellow)">α</span>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--text3);margin-top:2px">scalar<br>exp(g_γ[idx])</div>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3)">×</span>
+            <!-- S_h old -->
+            <div style="text-align:center">
+              <div style="width:64px;height:64px;background:rgba(34,211,238,.08);border:1px dashed rgba(34,211,238,.3);border-radius:4px;display:flex;align-items:center;justify-content:center">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)">S<sub>h</sub><sup>old</sup></span>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pink);margin-top:2px">128×128</div>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3)">+</span>
+            <!-- k^T -->
+            <div style="text-align:center">
+              <div style="width:12px;height:64px;background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.3);border-radius:3px;display:flex;align-items:center;justify-content:center">
+                <span style="font-size:7px;color:var(--pink);writing-mode:vertical-rl;font-family:'JetBrains Mono',monospace">k<sup>T</sup></span>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pink);margin-top:2px">128×1</div>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3)">⊗</span>
+            <!-- v -->
+            <div style="text-align:center">
+              <div style="width:64px;height:12px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);border-radius:3px;display:flex;align-items:center;justify-content:center">
+                <span style="font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">v</span>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pink);margin-top:2px">1×128</div>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3)">=</span>
+            <!-- S_h new -->
+            <div style="text-align:center">
+              <div style="width:64px;height:64px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.4);border-radius:4px;display:flex;align-items:center;justify-content:center">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan)">S<sub>h</sub><sup>new</sup></span>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pink);margin-top:2px">128×128</div>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--text3);margin:0 4px">→</span>
+            <!-- query -->
+            <div style="text-align:center">
+              <div style="width:64px;height:12px;background:rgba(96,165,250,.15);border:1px solid rgba(96,165,250,.3);border-radius:3px;display:flex;align-items:center;justify-content:center">
+                <span style="font-size:7px;color:var(--blue);font-family:'JetBrains Mono',monospace">q</span>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pink);margin-top:2px">1×128</div>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3)">@</span>
+            <div style="text-align:center">
+              <div style="width:64px;height:64px;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.4);border-radius:4px;display:flex;align-items:center;justify-content:center">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan)">S<sub>h</sub></span>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pink);margin-top:2px">128×128</div>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3)">=</span>
+            <div style="text-align:center">
+              <div style="width:64px;height:12px;background:rgba(74,222,128,.3);border:1px solid rgba(74,222,128,.5);border-radius:3px;display:flex;align-items:center;justify-content:center">
+                <span style="font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">o<sub>h</sub></span>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--pink);margin-top:2px">1×128</div>
+            </div>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:10px">
+            32 heads × [128×128] state = <b style="color:var(--cyan)">524,288 values = 1 MB bf16</b> per layer &bull; 24 layers = <b style="color:var(--cyan)">24 MB</b> per request &bull; <b>Fixed size regardless of sequence length</b>
+          </div>
+        </div>
+
+        <!-- Multi-scale heads explanation -->
+        <div style="background:var(--bg);border:1px solid rgba(251,191,36,.25);border-radius:6px;padding:16px;margin:10px 0">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--yellow);margin-bottom:10px">Why Different α Per Head? — Multi-Scale Memory</div>
+          <div style="font-size:11px;color:var(--text2);margin-bottom:10px">
+            No head is "more important" — each head specializes in a <b>different time scale</b>, like 32 zoom levels on the past. The model needs all scales simultaneously.
+          </div>
+          <div class="f" style="font-size:10px">
+            <span class="c">// Each head sees the past at a different "resolution":</span><br><br>
+            Head 0:  α=<span class="n">0.40</span>  memory ~5 tokens    → <span class="c">"what was the LAST word?"</span><br>
+            Head 5:  α=<span class="n">0.65</span>  memory ~20 tokens   → <span class="c">"what was this sentence about?"</span><br>
+            Head 15: α=<span class="n">0.80</span>  memory ~200 tokens  → <span class="c">"what was this paragraph about?"</span><br>
+            Head 25: α=<span class="n">0.95</span>  memory ~2000 tokens → <span class="c">"what was this section about?"</span><br>
+            Head 31: α=<span class="n">0.999</span> memory ~5000 tokens → <span class="c">"what was the general topic?"</span><br><br>
+            <span class="c">// For input: "The cat sat on the mat. The dog ran in the park. She went to the store..."</span><br><br>
+            Head 0 sees:  <span class="g">"...store"</span>              <span class="c">// only the very last word</span><br>
+            Head 10 sees: <span class="g">"...went to the store"</span>     <span class="c">// recent phrase</span><br>
+            Head 20 sees: <span class="g">"...dog ran...store"</span>       <span class="c">// blurry recent paragraph</span><br>
+            Head 31 sees: <span class="g">"cat...dog...store"</span>        <span class="c">// vague gist of everything</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+            <div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:5px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:var(--green);margin-bottom:4px">Why not make ALL heads slow-decay?</div>
+              <div style="font-size:10px;color:var(--text3);line-height:1.6">
+                If every head has α≈1.0, you'd blend 5000+ tokens equally.
+                Can't tell what the <b>last word</b> was — drowned in the average.
+                Fast-decay heads stay sharp on recent tokens.
+                Slow-decay heads remember the big picture.
+                <b style="color:var(--green)">You need both.</b>
+              </div>
+            </div>
+            <div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:5px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;color:var(--purple);margin-bottom:4px">Why fixed slopes, not learned?</div>
+              <div style="font-size:10px;color:var(--text3);line-height:1.6">
+                Some models (GDN) learn per-token gating.
+                Simple GLA uses <b>fixed ALiBi slopes</b> — hardcoded at init, never change.
+                ALiBi paper showed fixed geometric slopes work well empirically.
+                Saves parameters + compute.
+                The output projection W_o [4096×4096] learns to <b>mix heads</b> — weighting head 0 heavily for one task, head 31 for another.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="f" style="font-size:11px">
+          <span class="c">── Output Norm + Gate + Projection ──</span><br><br>
+          <span class="c">// First normalize the output (lightning layers have this extra norm)</span><br>
+          <span class="v">o</span> <span class="o">=</span> RMSNorm(<span class="v">o</span>, w=<span class="d">[4096]</span>)  <span class="c">// o_norm — same formula as input_layernorm</span><br><br>
+          <span class="c">// Gate (same concept as minicpm4's o_gate, just named z_proj here)</span><br>
+          <span class="c">// WHY: The recurrent state accumulates info from ALL past tokens.</span><br>
+          <span class="c">// The gate lets the model learn which dimensions of the recurrent</span><br>
+          <span class="c">// output are relevant NOW vs which are stale/irrelevant.</span><br>
+          <span class="v">z</span> <span class="o">=</span> σ(h <span class="o">@</span> W_z<sup>T</sup>)  <span class="c">// [1,4096]×[4096,4096] → σ → [4096] each in (0,1)   32MB</span><br>
+          <span class="v">o</span> <span class="o">=</span> <span class="v">o</span> <span class="o">⊙</span> <span class="v">z</span>  <span class="c">// element-wise: z[i]≈0 suppresses, z[i]≈1 passes through</span><br><br>
+          <span class="v">out</span> <span class="o">=</span> <span class="v">o</span> <span class="o">@</span> W_o<sup>T</sup>  <span class="c">// [1,4096]×[4096,4096] → [1,4096]   32MB</span>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">
+          HBM reads: 96 + 32 + 32 = <b style="color:var(--cyan)">160 MB</b> weights + 2MB state R/W
+        </div>
+      </div>
+    </div>
+
+    <!-- Residual -->
+    <div class="f"><span class="v">h</span> <span class="o">=</span> <span class="v">residual</span> <span class="o">+</span> attn_output <span class="o">×</span> <span class="n">0.24749</span>   <span class="c">// scale_depth/√layers = 1.4/√32</span></div>
+  </div>
+
+  <!-- MLP RESIDUAL -->
+  <div class="rb" style="border-color:var(--green);background:rgba(74,222,128,.02);margin-top:16px">
+    <div class="rl" style="color:var(--green)">MLP RESIDUAL BLOCK (all 32 layers identical)</div>
+    <div class="f"><span class="v">residual</span> <span class="o">=</span> <span class="v">h</span></div>
+    <div class="dia ay" style="margin:12px 0">
+      <div class="dt" style="color:var(--yellow)"><span class="sn" style="background:rgba(251,191,36,.15);color:var(--yellow)">C</span> RMSNorm (post_attention_layernorm)</div>
+      <div class="f" style="font-size:11px"><span class="v">h</span> <span class="o">=</span> RMSNorm(<span class="v">h</span>, w=<span class="d">[4096]</span>, ε=<span class="n">1e-6</span>)</div>
+    </div>
+
+    <div class="dia ag">
+      <div class="dt" style="color:var(--green)"><span class="sn" style="background:rgba(74,222,128,.15);color:var(--green)">D</span> SwiGLU MLP <span class="chip cg">201.33M params/layer</span></div>
+      <div class="f" style="font-size:11px">
+        <span class="c">// WHY SwiGLU? A standard MLP is just: out = W_down @ ReLU(W_up @ h)</span><br>
+        <span class="c">// SwiGLU adds a GATING mechanism: two parallel projections — one makes a</span><br>
+        <span class="c">// "gate" that controls how much of the other projection passes through.</span><br>
+        <span class="c">// This gives the model more expressiveness: it can learn to selectively</span><br>
+        <span class="c">// activate or suppress different features in the intermediate space.</span><br>
+        <span class="c">// SwiGLU consistently outperforms ReLU/GELU MLPs in practice (PaLM, LLaMA, etc.)</span><br><br>
+
+        <span class="c">═══ Step 1: Fused gate + up projection (single GEMM) ═══</span><br>
+        [<span class="v">gate</span>, <span class="v">up</span>] <span class="o">=</span> h <span class="o">@</span> [W_gate | W_up]<sup>T</sup><br>
+        <span class="c">// [1, 4096] × [4096, 32768] → [1, 32768]</span><br>
+        <span class="c">// Then split in half:</span><br>
+        <span class="c">//   gate = first 16384 values   (controls what passes through)</span><br>
+        <span class="c">//   up   = last 16384 values    (the actual features to gate)</span><br>
+        <span class="c">// W_gate: [16384 × 4096] = 128 MB    W_up: [16384 × 4096] = 128 MB</span><br>
+        <span class="c">// Fused as one [32768 × 4096] matrix = 256 MB total</span><br><br>
+
+        <span class="c">═══ Step 2: SiLU activation on gate, then element-wise multiply ═══</span><br><br>
+        <span class="c">// SiLU (Sigmoid Linear Unit) = also called "Swish"</span><br>
+        <span class="c">// Formula:  SiLU(x) = x × σ(x) = x × (1 / (1 + exp(-x)))</span><br>
+        <span class="c">//</span><br>
+        <span class="c">// What it does for different values:</span><br>
+        <span class="c">//   SiLU(-5)  = -5 × σ(-5)  = -5 × 0.007 = -0.034  ≈ 0  (kills negative)</span><br>
+        <span class="c">//   SiLU(-1)  = -1 × σ(-1)  = -1 × 0.269 = -0.269      (slightly negative OK)</span><br>
+        <span class="c">//   SiLU(0)   =  0 × σ(0)   =  0 × 0.5   =  0</span><br>
+        <span class="c">//   SiLU(1)   =  1 × σ(1)   =  1 × 0.731 =  0.731      (passes most)</span><br>
+        <span class="c">//   SiLU(5)   =  5 × σ(5)   =  5 × 0.993 =  4.97  ≈ x  (passes through)</span><br>
+        <span class="c">//</span><br>
+        <span class="c">// Unlike ReLU (which hard-zeroes negatives), SiLU is smooth</span><br>
+        <span class="c">// and allows small negative values — better gradients during training.</span><br><br>
+        <span class="v">x</span> <span class="o">=</span> SiLU(<span class="v">gate</span>) <span class="o">⊙</span> <span class="v">up</span><br>
+        <span class="c">// SiLU([16384]) ⊙ [16384] → [16384]</span><br>
+        <span class="c">// gate decides HOW MUCH of each "up" feature passes through:</span><br>
+        <span class="c">//   If gate[i] is large positive → SiLU ≈ gate[i] → up[i] passes fully</span><br>
+        <span class="c">//   If gate[i] is large negative → SiLU ≈ 0      → up[i] is suppressed</span><br>
+        <span class="c">// This is the "GLU" (Gated Linear Unit) part of SwiGLU</span><br><br>
+
+        <span class="c">═══ Step 3: Down projection (compress back to hidden size) ═══</span><br>
+        <span class="v">out</span> <span class="o">=</span> <span class="v">x</span> <span class="o">@</span> W_down<sup>T</sup><br>
+        <span class="c">// [1, 16384] × [16384, 4096] → [1, 4096]</span><br>
+        <span class="c">// W_down: [4096 × 16384] = 128 MB</span><br>
+        <span class="c">// Compresses 16384-dim intermediate back to 4096-dim hidden</span>
+      </div>
+      <div><span class="chip ch">HBM</span> <span style="font-size:11px;color:var(--text3)">256 MB (gate+up) + 128 MB (down) = 384 MB per layer — 67.9% of all layer params. Deeply memory-bound at batch=1.</span></div>
+    </div>
+
+    <div class="f"><span class="v">h</span> <span class="o">=</span> <span class="v">residual</span> <span class="o">+</span> mlp_output <span class="o">×</span> <span class="n">0.24749</span></div>
+  </div>
+</div>
+
+<!-- STEPS 3-6: Final processing -->
+<div class="flow-d"><div class="arr"></div><div class="arrh"></div><div class="arrl">h = [1, 4096] after layer 31</div></div>
+
+<div class="wb">
+  <h4><span class="sn" style="background:rgba(251,191,36,.2);color:var(--yellow)">3</span> Final Norm → <span class="sn" style="background:rgba(251,191,36,.2);color:var(--yellow)">4</span> µP Scale → <span class="sn" style="background:rgba(167,139,250,.2);color:var(--purple)">5</span> LM Head → <span class="sn" style="background:rgba(74,222,128,.2);color:var(--green)">6</span> Sample</h4>
+  <div class="f">
+    <span class="v">h</span> <span class="o">=</span> RMSNorm(<span class="v">h</span>, w=<span class="d">[4096]</span>)   <span class="c">// model.norm</span><br>
+    <span class="v">h</span> <span class="o">=</span> <span class="v">h</span> <span class="o">÷</span> <span class="n">16</span>   <span class="c">// scale_width = hidden/dim_model_base = 4096/256</span><br>
+    <span class="v">logits</span> <span class="o">=</span> <span class="v">h</span> <span class="o">@</span> lm_head.weight<sup>T</sup>   <span class="c">// [1,4096]×[4096,73448] → [1,73448]  601MB</span><br>
+    <span class="v">probs</span> <span class="o">=</span> softmax(<span class="v">logits</span>)   <span class="c">// [73448] → probs["42"] is highest</span><br>
+    <span class="v">next_token</span> <span class="o">=</span> sample(<span class="v">probs</span>) → <span class="g" style="font-size:14px;font-weight:700">"42" ✓</span>
+  </div>
+  <div><span class="chip ch">HBM</span> lm_head: 601 MB — single biggest per-token op. NOT tied to embed_tokens.</div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SPARSE ATTENTION DEEP DIVE -->
+<!-- ═══════════════════════════════════════ -->
+<div class="sl" style="background:rgba(248,113,113,.1);color:var(--red)">Deep Dive</div>
+<div class="st">Sparse Attention in minicpm4 Layers (seq &gt; 8,192)</div>
+<div class="sd"><b>Key insight:</b> Sparse attention does NOT change the model architecture. The QKV projections, output gate, and output projection are <b>100% identical</b> in dense and sparse mode. The only difference is that for long sequences, a <b>block mask</b> is computed beforehand and passed to the attention CUDA kernel, telling it to <b>skip unimportant 64-token blocks</b>. Same softmax math, fewer blocks.</div>
+
+<div class="wb">
+  <h4>Sparse Config &amp; infllmv2 Pipeline</h4>
+  <div class="g4" style="margin-bottom:16px">
+    <div class="stat"><div class="stat-l">dense_len</div><div class="stat-v" style="color:var(--yellow)">8,192</div><div class="stat-n">Dense below this</div></div>
+    <div class="stat"><div class="stat-l">window</div><div class="stat-v" style="color:var(--green)">2,048</div><div class="stat-n">Local sliding window</div></div>
+    <div class="stat"><div class="stat-l">topk blocks</div><div class="stat-v" style="color:var(--red)">64</div><div class="stat-n">Global selected</div></div>
+    <div class="stat"><div class="stat-l">block_size</div><div class="stat-v" style="color:var(--pink)">64</div><div class="stat-n">Tokens per block</div></div>
+  </div>
+  <div class="g4" style="margin-bottom:16px">
+    <div class="stat"><div class="stat-l">K1 kernel</div><div class="stat-v" style="color:var(--orange)">32/16</div><div class="stat-n">size / stride</div></div>
+    <div class="stat"><div class="stat-l">K2 kernel</div><div class="stat-v" style="color:var(--orange)">128/64</div><div class="stat-n">4× coarser</div></div>
+    <div class="stat"><div class="stat-l">init_blocks</div><div class="stat-v" style="color:var(--purple)">1</div><div class="stat-n">Always first 64 tokens</div></div>
+    <div class="stat"><div class="stat-l">Block mask dim</div><div class="stat-v" style="color:var(--blue)">64</div><div class="stat-n">infllmv2 N_BLOCK_DIM</div></div>
+  </div>
+
+  <!-- Visual: Dense vs Sparse -->
+  <div class="g2" style="margin:20px 0">
+    <div style="border:2px solid rgba(74,222,128,.3);border-radius:8px;padding:16px;background:rgba(74,222,128,.03);text-align:center">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--green);margin-bottom:12px">DENSE (seq ≤ 8,192)</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:8px">Q attends to ALL tokens:</div>
+      <div style="display:flex;gap:1px;justify-content:center;flex-wrap:wrap;margin:8px 0">
+        <div style="width:100%;height:16px;background:rgba(74,222,128,.3);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--green);font-family:'JetBrains Mono',monospace">all seq_len tokens (up to 8,192)</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3)">blockmask = <b>None</b></div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px">flash_attn_with_kvcache → standard FA3</div>
+    </div>
+    <div style="border:2px solid rgba(248,113,113,.3);border-radius:8px;padding:16px;background:rgba(248,113,113,.03);text-align:center">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--red);margin-bottom:12px">SPARSE (seq &gt; 8,192)</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:8px">Q attends to SELECTED blocks only:</div>
+      <div style="display:flex;gap:2px;justify-content:center;flex-wrap:wrap;margin:8px 0">
+        <div style="width:30px;height:16px;background:rgba(167,139,250,.4);border-radius:2px;font-size:7px;display:flex;align-items:center;justify-content:center;color:var(--purple);font-family:'JetBrains Mono',monospace">init</div>
+        <div style="width:14px;height:16px;background:rgba(100,116,139,.15);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(248,113,113,.3);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(100,116,139,.15);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(100,116,139,.15);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(248,113,113,.3);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(100,116,139,.15);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(248,113,113,.3);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(100,116,139,.15);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(248,113,113,.3);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(100,116,139,.15);border-radius:2px"></div>
+        <div style="width:14px;height:16px;background:rgba(100,116,139,.15);border-radius:2px"></div>
+        <div style="width:60px;height:16px;background:rgba(251,191,36,.4);border-radius:2px;font-size:7px;display:flex;align-items:center;justify-content:center;color:var(--yellow);font-family:'JetBrains Mono',monospace">local window</div>
+      </div>
+      <div style="font-size:9px;color:var(--text3);display:flex;gap:8px;justify-content:center;margin:4px 0">
+        <span><span style="display:inline-block;width:8px;height:8px;background:rgba(167,139,250,.4);border-radius:1px;vertical-align:middle"></span> init block</span>
+        <span><span style="display:inline-block;width:8px;height:8px;background:rgba(248,113,113,.3);border-radius:1px;vertical-align:middle"></span> topk=64 selected</span>
+        <span><span style="display:inline-block;width:8px;height:8px;background:rgba(100,116,139,.15);border-radius:1px;vertical-align:middle"></span> skipped</span>
+        <span><span style="display:inline-block;width:8px;height:8px;background:rgba(251,191,36,.4);border-radius:1px;vertical-align:middle"></span> local 2048</span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">blockmask = <b style="color:var(--red)">uint64 bitmask</b> from infllmv2</div>
+      <div style="font-size:10px;color:var(--text3)">infllm_cuda.varlen_fwd → same math, skips masked blocks</div>
+    </div>
+  </div>
+
+  <!-- The Cliff: Transition from dense to sparse -->
+  <div style="border:2px solid rgba(251,191,36,.3);border-radius:8px;padding:20px;margin:20px 0;background:rgba(251,191,36,.03)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--yellow);margin-bottom:12px">⚠ The Cliff: Dense → Sparse Transition</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:16px">There is a hard cutoff at <code>dense_len = 8,192</code>. One token past the threshold, attention drops from 100% of tokens to ~75%. At long contexts, sparse attention covers only a tiny fraction — but selects the most important blocks.</div>
+
+    <!-- Transition table -->
+    <table class="tbl" style="margin-bottom:16px">
+      <thead><tr><th>seq_len</th><th>Mode</th><th>Tokens Attended</th><th>% of Sequence</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--green)">8,192</td><td style="color:var(--green)">Dense</td><td style="color:var(--green)"><b>8,192</b></td><td>100%</td><td>Below threshold — full attention</td></tr>
+        <tr style="background:rgba(251,191,36,.06)"><td style="color:var(--yellow)">8,193</td><td style="color:var(--red)">Sparse</td><td style="color:var(--red)"><b>≤ 6,208</b></td><td style="color:var(--yellow)">75.8%</td><td style="color:var(--yellow)">← Cliff! 24% drop in one token</td></tr>
+        <tr><td>16,384</td><td style="color:var(--red)">Sparse</td><td style="color:var(--red)">≤ 6,208</td><td>37.9%</td><td>topk picks 64 of ~256 blocks</td></tr>
+        <tr><td>32,768</td><td style="color:var(--red)">Sparse</td><td style="color:var(--red)">≤ 6,208</td><td>18.9%</td><td>topk picks 64 of ~512 blocks</td></tr>
+        <tr><td>131,072</td><td style="color:var(--red)">Sparse</td><td style="color:var(--red)">≤ 6,208</td><td>4.7%</td><td>topk picks 64 of ~2,048 blocks</td></tr>
+        <tr><td>524,288</td><td style="color:var(--red)">Sparse</td><td style="color:var(--red)">≤ 6,208</td><td>1.2%</td><td>topk picks 64 of ~8,192 blocks</td></tr>
+      </tbody>
+    </table>
+
+    <!-- Visual bar chart -->
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:8px">Tokens attended (bar) vs total sequence (full width):</div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:60px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);text-align:right">8,192</div>
+        <div style="flex:1;height:14px;background:var(--bg4);border-radius:3px;overflow:hidden;position:relative">
+          <div style="width:100%;height:100%;background:rgba(74,222,128,.4);border-radius:3px"></div>
+          <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green)">8,192 (100%)</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:60px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);text-align:right">8,193</div>
+        <div style="flex:1;height:14px;background:var(--bg4);border-radius:3px;overflow:hidden;position:relative">
+          <div style="width:75.8%;height:100%;background:rgba(248,113,113,.4);border-radius:3px"></div>
+          <span style="position:absolute;left:calc(75.8% + 4px);top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--yellow)">← cliff!</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:60px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);text-align:right">16K</div>
+        <div style="flex:1;height:14px;background:var(--bg4);border-radius:3px;overflow:hidden">
+          <div style="width:37.9%;height:100%;background:rgba(248,113,113,.4);border-radius:3px"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:60px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);text-align:right">32K</div>
+        <div style="flex:1;height:14px;background:var(--bg4);border-radius:3px;overflow:hidden">
+          <div style="width:18.9%;height:100%;background:rgba(248,113,113,.4);border-radius:3px"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:60px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);text-align:right">128K</div>
+        <div style="flex:1;height:14px;background:var(--bg4);border-radius:3px;overflow:hidden">
+          <div style="width:4.7%;height:100%;background:rgba(248,113,113,.4);border-radius:3px"></div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:60px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text2);text-align:right">524K</div>
+        <div style="flex:1;height:14px;background:var(--bg4);border-radius:3px;overflow:hidden">
+          <div style="width:1.2%;height:100%;background:rgba(248,113,113,.4);border-radius:3px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="f" style="font-size:11px;margin-top:12px">
+      <span class="c">// The ≤ 6,208 is constant regardless of seq_len:</span><br>
+      <span class="v">attended</span> <span class="o">=</span> init_blocks × block_size <span class="o">+</span> topk × block_size <span class="o">+</span> window<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="o">=</span> <span class="n">1</span> × <span class="n">64</span> <span class="o">+</span> <span class="n">64</span> × <span class="n">64</span> <span class="o">+</span> <span class="n">2048</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="o">=</span> <span class="n">64</span> <span class="o">+</span> <span class="n">4096</span> <span class="o">+</span> <span class="n">2048</span> <span class="o">=</span> <span class="g">6,208</span><br><br>
+      <span class="c">// BUT at seq=8,193 there are only 128 total blocks (8193/64).</span><br>
+      <span class="c">// topk=64 picks 64 out of 128 — still attending to ~half via topk.</span><br>
+      <span class="c">// Plus window + init → still quite dense near the threshold.</span><br>
+      <span class="c">// The real sparsity benefit is at 128K+ where 64 out of 2,000+ blocks.</span><br><br>
+      <span class="c">// Also note: topk blocks may OVERLAP with local window near the end,</span><br>
+      <span class="c">// so actual unique tokens attended can be &lt; 6,208.</span>
+    </div>
+  </div>
+
+  <!-- Pipeline steps -->
+  <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--orange);margin:16px 0 8px">How the block mask is computed (Steps ❶→❹ only run for seq &gt; 8,192):</div>
+
+  <div class="afb">
+    <h5 style="color:var(--orange)">Step 1: Compress Keys (Triton kernel: <code>compress_k_complete_kernel_new</code>)</h5>
+    <div class="f" style="font-size:11px">
+      <span class="c">// K1: mean-pool 32 consecutive K vectors with stride 16</span><br>
+      K1[i] <span class="o">=</span> mean(K[i*16 : i*16+32])  <span class="c">// → ~seq_len/16 compressed keys [num_kv_heads, 128]</span><br><br>
+      <span class="c">// K2: mean-pool 128 K vectors with stride 64 (4× coarser)</span><br>
+      K2[i] <span class="o">=</span> mean(K[i*64 : i*64+128])  <span class="c">// → ~seq_len/64 compressed keys</span><br><br>
+      <span class="c">// Stored in MiniCPMHybridReqToTokenPool.req_to_sparse_k1_token / k2_token</span><br>
+      <span class="c">// Triton kernel handles history + new chunks in single fused pass</span>
+    </div>
+  </div>
+
+  <div class="afb">
+    <h5 style="color:var(--orange)">Step 2: Score &amp; Select TopK (<code>infllmv2_attn_stage1</code> → <code>max_pooling_1d_varlen</code>)</h5>
+    <div class="f" style="font-size:11px">
+      <span class="c">// infllmv2_attn_stage1 calls infllm_cuda.varlen_fwd_stage1</span><br>
+      <span class="c">// Q heads reshaped for GQA: [total_q, 32h, 128] → [total_q*16, 2h, 128]</span><br>
+      <span class="c">// This makes each of 2 KV heads see its 16 Q heads as separate tokens</span><br><br>
+      scores <span class="o">=</span> infllmv2_attn_stage1(Q, K1, K2, ...)  <span class="c">// CUDA kernel</span><br>
+      <span class="c">// Returns: [num_kv_heads, total_q, max_seqlen_k1]</span><br><br>
+      <span class="c">// Max-pool scores into block-level scores:</span><br>
+      block_scores <span class="o">=</span> max_pooling_1d_varlen(scores,<br>
+      &nbsp;&nbsp;block_size=<span class="n">64</span>, stride=<span class="n">16</span>,<br>
+      &nbsp;&nbsp;local_blocks=<span class="n">32</span>, init_blocks=<span class="n">1</span>)  <span class="c">// infllmv2 CUDA kernel</span><br><br>
+      <span class="c">// Select top-64 blocks globally:</span><br>
+      topk_idx <span class="o">=</span> block_scores.topk(<span class="n">64</span>).indices.sort()  <span class="c">// [kv_heads, total_q, 64]</span>
+    </div>
+  </div>
+
+  <div class="afb">
+    <h5 style="color:var(--orange)">Step 3: Sparse Attention via Block Mask (<code>infllmv2_attn_varlen_func</code>)</h5>
+    <div class="f" style="font-size:11px">
+      <span class="c">// Convert topk_idx → uint64 block mask for CUDA kernel</span><br>
+      fwd_blockmask_uint64 <span class="o">=</span> topk_to_uint64(topk_idx, max_seqlen_k, <span class="n">64</span>)  <span class="c">// N_BLOCK_DIM=64</span><br><br>
+      <span class="c">// Run modified FlashAttention with block mask</span><br>
+      out <span class="o">=</span> infllm_cuda.varlen_fwd(q, k, v, ..., fwd_blockmask_uint64)<br><br>
+      <span class="c">// Effective attention pattern per query:</span><br>
+      <span class="g">init_blocks</span>:  first <span class="n">64</span> tokens<br>
+      <span class="g">local_window</span>: last <span class="n">2,048</span> tokens<br>
+      <span class="g">topk_blocks</span>: <span class="n">64</span> × <span class="n">64</span> = <span class="n">4,096</span> selected tokens<br>
+      <span class="c">// Total ≤ 6,208 instead of 524,288 → ~84× reduction!</span>
+    </div>
+  </div>
+
+  <div class="afb">
+    <h5 style="color:var(--orange)">Decode Shortcut (split_stage1 mode)</h5>
+    <div class="f" style="font-size:11px">
+      <span class="c">// For decode (batch=1, seq_len=1), stage1 uses simpler BMM path:</span><br>
+      q_reshape <span class="o">=</span> q.reshape(bs, 1, q_head, head_dim).transpose(...)  <span class="c">// GQA reshape</span><br>
+      k_reshape <span class="o">=</span> k.reshape(bs, k1_len//bs, kv_head, head_dim).transpose(-2,-1)<br>
+      score <span class="o">=</span> torch.bmm(q_reshape, k_reshape).mul_(1/√128)<br>
+      score <span class="o">=</span> softmax(score)<br>
+      score <span class="o">=</span> score.reshape(kv_head, bs, group_size, ...).sum(dim=2)  <span class="c">// aggregate groups</span><br>
+      <span class="c">// Then max_pooling_1d_varlen + topk as above</span>
+    </div>
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- MEMORY POOL ARCHITECTURE -->
+<!-- ═══════════════════════════════════════ -->
+<div class="sl" style="background:rgba(167,139,250,.1);color:var(--purple)">Memory Architecture</div>
+<div class="st">SGLang Memory Pool Stack</div>
+<div class="sd">MiniCPM-SALA uses a custom memory pool hierarchy that manages three separate caches: KV cache for minicpm4 softmax layers, recurrent states for lightning GLA layers, and compressed key tables for sparse attention.</div>
+
+<div class="wb">
+  <h4>Memory Pool Architecture — Two Separate Systems</h4>
+  <div style="font-size:12px;color:var(--text2);margin-bottom:20px">
+    The model needs two completely different cache systems because minicpm4 and lightning layers store state differently.
+    These are two independent pools, managed by two separate objects. A request gets an index in each.
+  </div>
+
+  <!-- POOL 1: Request → Token mapping + GLA states -->
+  <div style="border:2px solid var(--purple);border-radius:10px;padding:20px;margin:16px 0;background:rgba(167,139,250,.03)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--purple);margin-bottom:4px">POOL 1: MiniCPMHybridReqToTokenPool</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:16px">Manages: which token is stored where + GLA recurrent states + compressed key indices. One instance for the whole server.</div>
+
+    <!-- req_to_token -->
+    <div style="border:1px solid var(--border);border-radius:6px;padding:14px;margin:8px 0;background:var(--bg3)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--blue);margin-bottom:8px">req_to_token</div>
+      <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:4px">Shape & Size:</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pink)">[max_reqs, 524,288] int32</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px">= max_reqs × 524,288 × 4 bytes</div>
+        </div>
+        <div style="flex:1;min-width:300px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-bottom:4px">What it stores:</div>
+          <div class="f" style="font-size:10px;margin:0;padding:8px">
+            <span class="c">// Each row = one request. Each value = slot index in KV cache.</span><br>
+            <span class="c">// Example: request 3 has 5 tokens stored at these KV cache slots:</span><br>
+            req_to_token[3] = [<span class="n">1042</span>, <span class="n">1043</span>, <span class="n">1099</span>, <span class="n">1100</span>, <span class="n">1101</span>, 0, 0, ...]<br>
+            <span class="c">//                  ↑ slot in k_buffer/v_buffer where token 0's KV lives</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sparse K1 / K2 tables -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0">
+      <div style="border:1px solid var(--border);border-radius:6px;padding:14px;background:var(--bg3)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--orange);margin-bottom:8px">req_to_sparse_k1_token</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pink)">[max_reqs, 32,766] int32</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px">(524,288 − 32) / 16 + 1 = 32,766 slots</div>
+        <div class="f" style="font-size:10px;margin:6px 0 0;padding:8px">
+          <span class="c">// Slot indices for compressed K1 keys</span><br>
+          <span class="c">// K1 = mean of 32 K vectors, stride 16</span><br>
+          <span class="c">// One entry per compressed chunk</span>
+        </div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:6px;padding:14px;background:var(--bg3)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--orange);margin-bottom:8px">req_to_sparse_k2_token</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pink)">[max_reqs, 8,190] int32</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:2px">(524,288 − 128) / 64 + 1 = 8,190 slots</div>
+        <div class="f" style="font-size:10px;margin:6px 0 0;padding:8px">
+          <span class="c">// Slot indices for compressed K2 keys</span><br>
+          <span class="c">// K2 = mean of 128 K vectors, stride 64</span><br>
+          <span class="c">// 4× coarser than K1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indirection mapping -->
+    <div style="border:1px solid var(--border);border-radius:6px;padding:14px;margin:8px 0;background:var(--bg3)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--teal);margin-bottom:8px">req_index_to_mamba_index_mapping</div>
+      <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pink)">[max_reqs] int32</div>
+        </div>
+        <div style="flex:1;min-width:300px">
+          <div class="f" style="font-size:10px;margin:0;padding:8px">
+            <span class="c">// Maps request index → GLA state slot index in MambaPool</span><br>
+            <span class="c">// Example: request 3 has GLA state at slot 7:</span><br>
+            mapping[3] = <span class="n">7</span>  <span class="c">// → mamba_pool.temporal[:, 7, :, :, :] is this request's states</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MambaPool (nested) -->
+    <div style="border:2px solid var(--cyan);border-radius:8px;padding:16px;margin:12px 0 0;background:rgba(34,211,238,.03)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--cyan);margin-bottom:4px">MambaPool (mamba_pool)</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:12px">Stores the fixed-size recurrent states for all 24 lightning layers. Indexed by the mapping above.</div>
+
+      <div style="border:1px solid var(--border);border-radius:6px;padding:14px;margin:8px 0;background:var(--bg3)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--cyan);margin-bottom:8px">mamba_cache.temporal — THE GLA STATES</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pink);margin-bottom:4px">[24 layers, pool_size+1, 32 heads, 128, 128] bf16</div>
+        <div style="display:flex;align-items:center;gap:16px;margin:12px 0;flex-wrap:wrap">
+          <!-- Visual: the 5D tensor -->
+          <div style="text-align:center">
+            <div style="display:flex;gap:3px;align-items:flex-end">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3)">layer 0</div>
+                <div style="width:50px;height:50px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.3);border-radius:3px;display:flex;align-items:center;justify-content:center">
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--cyan)">pool×<br>32×128<br>×128</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3)">layer 1</div>
+                <div style="width:50px;height:50px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:3px"></div>
+              </div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3)">…</div>
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3)">layer 23</div>
+                <div style="width:50px;height:50px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.2);border-radius:3px"></div>
+              </div>
+            </div>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text2);line-height:1.8">
+            <b style="color:var(--cyan)">Per request, per layer:</b><br>
+            &nbsp;&nbsp;32 heads × 128 × 128 = <b style="color:var(--yellow)">524,288 values</b><br>
+            &nbsp;&nbsp;× 2 bytes (bf16) = <b style="color:var(--yellow)">1 MB</b><br><br>
+            <b style="color:var(--cyan)">Per request, all 24 layers:</b><br>
+            &nbsp;&nbsp;24 × 1 MB = <b style="color:var(--yellow)">24 MB</b><br><br>
+            <b style="color:var(--cyan)">Total pool (e.g. pool=100 requests):</b><br>
+            &nbsp;&nbsp;24 × 100 × 1 MB = <b style="color:var(--yellow)">2.4 GB</b>
+          </div>
+        </div>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:6px;padding:14px;margin:8px 0;background:var(--bg3)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text3);margin-bottom:4px">mamba_cache.conv = [] <span style="font-weight:400">— empty, GLA has no convolution states</span></div>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:6px;padding:14px;margin:8px 0;background:var(--bg3)">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--teal);margin-bottom:8px">mamba_map — layer ID translation</div>
+        <div class="f" style="font-size:10px;margin:0;padding:8px">
+          <span class="c">// Global layer IDs (0-31) don't match MambaPool's internal indices (0-23)</span><br>
+          <span class="c">// mamba_map translates: which slot in temporal[layer_dim] stores which layer</span><br><br>
+          mamba_map = {<br>
+          &nbsp;&nbsp;<span class="n">1</span>→<span class="n">0</span>, <span class="n">2</span>→<span class="n">1</span>, <span class="n">3</span>→<span class="n">2</span>, <span class="n">4</span>→<span class="n">3</span>, <span class="n">5</span>→<span class="n">4</span>, <span class="n">6</span>→<span class="n">5</span>, <span class="n">7</span>→<span class="n">6</span>, <span class="n">8</span>→<span class="n">7</span>,  <span class="c">// layers 1-8 → indices 0-7</span><br>
+          &nbsp;&nbsp;<span class="n">10</span>→<span class="n">8</span>, <span class="n">11</span>→<span class="n">9</span>, ..., <span class="n">15</span>→<span class="n">13</span>,  <span class="c">// layers 10-15 → indices 8-13</span><br>
+          &nbsp;&nbsp;<span class="n">18</span>→<span class="n">14</span>, ..., <span class="n">21</span>→<span class="n">17</span>,  <span class="c">// layers 18-21 → indices 14-17</span><br>
+          &nbsp;&nbsp;<span class="n">23</span>→<span class="n">18</span>, ..., <span class="n">28</span>→<span class="n">23</span>   <span class="c">// layers 23-28 → indices 18-23</span><br>
+          }<br>
+          <span class="c">// Notice: layers 0, 9, 16, 17, 22, 29, 30, 31 are MISSING — those are minicpm4!</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POOL 2: KV Cache for softmax layers -->
+  <div style="border:2px solid var(--red);border-radius:10px;padding:20px;margin:24px 0 16px;background:rgba(248,113,113,.03)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--red);margin-bottom:4px">POOL 2: HybridLinearKVPool (token_to_kv_pool)</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:16px">Manages: actual K and V tensors for the 8 minicpm4 (softmax) layers only. Lightning layers don't use this at all.</div>
+
+    <!-- MHATokenToKVPool -->
+    <div style="border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:16px;margin:8px 0;background:var(--bg3)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--red);margin-bottom:12px">MHATokenToKVPool (full_kv_pool) — actual KV storage</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0">
+        <div style="border:1px solid var(--border);border-radius:6px;padding:14px;background:var(--bg)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--pink);margin-bottom:8px">k_buffer — 8 separate tensors</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pink)">[pool_size+1, 2 heads, 128 dim] bf16</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:4px">
+            Per token per layer: 2 × 128 × 2B = <b style="color:var(--yellow)">512 bytes</b><br>
+            Per token all 8 layers: <b style="color:var(--yellow)">4 KB</b>
+          </div>
+          <div style="display:flex;gap:3px;margin-top:8px">
+            <div style="width:30px;height:40px;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--red);font-family:'JetBrains Mono',monospace">L0</div>
+            <div style="width:30px;height:40px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--red);font-family:'JetBrains Mono',monospace">L9</div>
+            <div style="width:30px;height:40px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--red);font-family:'JetBrains Mono',monospace">L16</div>
+            <div style="width:30px;height:40px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--red);font-family:'JetBrains Mono',monospace">L17</div>
+            <div style="width:30px;height:40px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--red);font-family:'JetBrains Mono',monospace">L22</div>
+            <div style="width:30px;height:40px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--red);font-family:'JetBrains Mono',monospace">L29</div>
+            <div style="width:30px;height:40px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--red);font-family:'JetBrains Mono',monospace">L30</div>
+            <div style="width:30px;height:40px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--red);font-family:'JetBrains Mono',monospace">L31</div>
+          </div>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:6px;padding:14px;background:var(--bg)">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--green);margin-bottom:8px">v_buffer — 8 separate tensors</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--pink)">[pool_size+1, 2 heads, 128 dim] bf16</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:4px">
+            Per token per layer: 2 × 128 × 2B = <b style="color:var(--yellow)">512 bytes</b><br>
+            Per token all 8 layers: <b style="color:var(--yellow)">4 KB</b>
+          </div>
+          <div style="display:flex;gap:3px;margin-top:8px">
+            <div style="width:30px;height:40px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">L0</div>
+            <div style="width:30px;height:40px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">L9</div>
+            <div style="width:30px;height:40px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">L16</div>
+            <div style="width:30px;height:40px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">L17</div>
+            <div style="width:30px;height:40px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">L22</div>
+            <div style="width:30px;height:40px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">L29</div>
+            <div style="width:30px;height:40px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">L30</div>
+            <div style="width:30px;height:40px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;color:var(--green);font-family:'JetBrains Mono',monospace">L31</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layer ID mapping -->
+    <div style="border:1px solid var(--border);border-radius:6px;padding:14px;margin:8px 0;background:var(--bg3)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--teal);margin-bottom:8px">full_attention_layer_id_mapping — layer ID translation</div>
+      <div class="f" style="font-size:10px;margin:0;padding:8px">
+        <span class="c">// k_buffer and v_buffer only have 8 entries (one per minicpm4 layer)</span><br>
+        <span class="c">// But layer IDs in the model are 0-31. This maps global → internal:</span><br><br>
+        { <span class="n">0</span>→<span class="n">0</span>, <span class="n">9</span>→<span class="n">1</span>, <span class="n">16</span>→<span class="n">2</span>, <span class="n">17</span>→<span class="n">3</span>, <span class="n">22</span>→<span class="n">4</span>, <span class="n">29</span>→<span class="n">5</span>, <span class="n">30</span>→<span class="n">6</span>, <span class="n">31</span>→<span class="n">7</span> }<br><br>
+        <span class="c">// So when layer 22 calls get_kv_buffer(22), it maps to internal index 4:</span><br>
+        <span class="c">//   k = k_buffer[4][page_table_indices]  — NOT k_buffer[22]</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Per-request cost summary -->
+  <div style="border:2px solid var(--yellow);border-radius:10px;padding:20px;margin:16px 0;background:rgba(251,191,36,.03)">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--yellow);margin-bottom:12px">Per-Request Memory Cost Summary</div>
+    <table class="tbl">
+      <thead><tr><th>Component</th><th>Size Formula</th><th>At 4K tokens</th><th>At 128K tokens</th><th>Growth</th></tr></thead>
+      <tbody>
+        <tr>
+          <td style="color:var(--red)">KV cache (8 minicpm4 layers)</td>
+          <td style="color:var(--pink)">seq_len × 8 layers × 2 heads × 128 dim × 2B × 2(K+V)</td>
+          <td style="color:var(--yellow)">32 MB</td>
+          <td style="color:var(--yellow)">1 GB</td>
+          <td style="color:var(--red)">O(n) — grows with seq!</td>
+        </tr>
+        <tr>
+          <td style="color:var(--cyan)">GLA states (24 lightning layers)</td>
+          <td style="color:var(--pink)">24 × 32 × 128 × 128 × 2B</td>
+          <td style="color:var(--yellow)">24 MB</td>
+          <td style="color:var(--yellow)">24 MB</td>
+          <td style="color:var(--green)">O(1) — constant!</td>
+        </tr>
+        <tr>
+          <td style="color:var(--orange)">Sparse K1 table</td>
+          <td style="color:var(--pink)">min(seq/16, 32766) × 4B</td>
+          <td style="color:var(--yellow)">1 KB</td>
+          <td style="color:var(--yellow)">32 KB</td>
+          <td style="color:var(--text3)">O(n) but tiny (indices only)</td>
+        </tr>
+        <tr>
+          <td style="color:var(--orange)">Sparse K2 table</td>
+          <td style="color:var(--pink)">min(seq/64, 8190) × 4B</td>
+          <td style="color:var(--yellow)">256 B</td>
+          <td style="color:var(--yellow)">8 KB</td>
+          <td style="color:var(--text3)">O(n) but tiny</td>
+        </tr>
+        <tr style="background:var(--bg4)">
+          <td><b>Total per request</b></td>
+          <td></td>
+          <td style="color:var(--yellow)"><b>~56 MB</b></td>
+          <td style="color:var(--yellow)"><b>~1.02 GB</b></td>
+          <td style="color:var(--red)">KV cache dominates at long ctx</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);margin-top:10px">
+      Key insight: Lightning layers (75% of the model) contribute only <b style="color:var(--green)">24 MB constant</b> to memory regardless of context length.
+      At 128K context, the 8 minicpm4 layers consume <b style="color:var(--red)">1 GB</b> — this is the bottleneck for concurrent requests.
+    </div>
+  </div>
+
+  <!-- How it connects diagram -->
+  <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--text);margin:20px 0 12px">How a decode step reads from both pools:</div>
+  <div class="f" style="font-size:10px">
+    <span class="c">// For request #3, layer 22 (minicpm4 → softmax attention):</span><br>
+    req_pool_idx <span class="o">=</span> <span class="n">3</span><br>
+    page_table <span class="o">=</span> req_to_token[<span class="n">3</span>]  <span class="c">// → [1042, 1043, 1099, 1100, 1101, ...]</span><br>
+    internal_id <span class="o">=</span> full_attention_layer_id_mapping[<span class="n">22</span>]  <span class="c">// → 4</span><br>
+    K <span class="o">=</span> k_buffer[<span class="n">4</span>][page_table]  <span class="c">// → gather K vectors from KV pool slots</span><br>
+    V <span class="o">=</span> v_buffer[<span class="n">4</span>][page_table]  <span class="c">// → gather V vectors from KV pool slots</span><br><br>
+
+    <span class="c">// For request #3, layer 23 (lightning → GLA recurrence):</span><br>
+    mamba_idx <span class="o">=</span> req_index_to_mamba_index_mapping[<span class="n">3</span>]  <span class="c">// → 7</span><br>
+    internal_layer <span class="o">=</span> mamba_map[<span class="n">23</span>]  <span class="c">// → 18</span><br>
+    S <span class="o">=</span> mamba_pool.temporal[<span class="n">18</span>][<span class="n">7</span>]  <span class="c">// → [32 heads, 128, 128] = this request's state for layer 23</span><br>
+    <span class="c">// ... run GLA recurrence, update S in-place ...</span><br>
+    mamba_pool.temporal[<span class="n">18</span>][<span class="n">7</span>] <span class="o">=</span> S_updated  <span class="c">// write back</span>
+  </div>
+</div>
+
+<div class="wb">
+  <h4>How State is Accessed During Decode</h4>
+  <table class="tbl">
+    <thead><tr><th>Layer Type</th><th>Backend Call</th><th>State Read From</th><th>State Written To</th></tr></thead>
+    <tbody>
+      <tr><td style="color:var(--red)">minicpm4</td><td><code>FlashAttentionBackend.forward_decode()</code></td><td><code>full_kv_pool.k_buffer[mapped_id][page_table]</code></td><td>New k,v appended via <code>set_kv_buffer()</code></td></tr>
+      <tr><td style="color:var(--cyan)">lightning</td><td><code>SimpleGLAAttnBackend.forward()</code></td><td><code>mamba_pool.temporal[mamba_map[layer_id]][mamba_indices]</code></td><td>Updated state written back to same location</td></tr>
+      <tr><td style="color:var(--red)">minicpm4 (sparse)</td><td><code>compressed_attention()</code></td><td><code>req_to_sparse_k1_token</code> + <code>req_to_sparse_k2_token</code></td><td>New compressed keys via <code>compress_k_core_new()</code></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- GPU HARDWARE VIEW -->
+<!-- ═══════════════════════════════════════ -->
+<div class="sl" style="background:rgba(96,165,250,.1);color:var(--blue)">GPU &amp; Memory</div>
+<div class="st">RTX PRO GPU — Chip Architecture &amp; Memory Hierarchy</div>
+<div class="sd">Visual diagram of the GPU showing where MiniCPM-SALA's data physically lives during decode. Data flows from slow/large (GDDR7) → fast/small (Registers).</div>
+
+<!-- ═══ GPU CHIP DIAGRAM ═══ -->
+<div class="wb" style="padding:32px;overflow-x:auto">
+  <h4>GPU Chip Diagram — Data Placement During Decode</h4>
+
+  <div style="position:relative;width:100%;max-width:1100px;margin:0 auto">
+
+    <!-- ═══ GDDR7 (outer frame) ═══ -->
+    <div style="border:3px solid var(--red);border-radius:16px;padding:16px;background:rgba(248,113,113,.02);position:relative">
+      <div style="position:absolute;top:-14px;left:24px;background:var(--bg2);padding:0 12px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--red)">GDDR7 — 32 GB @ ~1,792 GB/s</div>
+      <div style="position:absolute;top:-14px;right:24px;background:var(--bg2);padding:0 12px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3)">SLOWEST &bull; LARGEST</div>
+
+      <!-- GDDR7 contents (left side chips) -->
+      <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap">
+        <!-- GDDR7 memory chips visual -->
+        <div style="display:flex;flex-direction:column;gap:6px;min-width:180px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:2px">GDDR7 MEMORY CHIPS</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+            <div style="height:36px;background:linear-gradient(135deg,rgba(248,113,113,.15),rgba(248,113,113,.05));border:1px solid rgba(248,113,113,.25);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--red)">8 GB</div>
+            <div style="height:36px;background:linear-gradient(135deg,rgba(248,113,113,.15),rgba(248,113,113,.05));border:1px solid rgba(248,113,113,.25);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--red)">8 GB</div>
+            <div style="height:36px;background:linear-gradient(135deg,rgba(248,113,113,.15),rgba(248,113,113,.05));border:1px solid rgba(248,113,113,.25);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--red)">8 GB</div>
+            <div style="height:36px;background:linear-gradient(135deg,rgba(248,113,113,.15),rgba(248,113,113,.05));border:1px solid rgba(248,113,113,.25);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--red)">8 GB</div>
+          </div>
+        </div>
+
+        <!-- What's stored in GDDR7 -->
+        <div style="flex:1;min-width:280px">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:4px">STORED IN GDDR7:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            <div style="padding:4px 8px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red)">Model Weights 18.95 GB</div>
+            <div style="padding:4px 8px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red)">KV Cache (8 layers) ~32MB-1GB</div>
+            <div style="padding:4px 8px;background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan)">GLA States (24 layers) 24 MB/req</div>
+            <div style="padding:4px 8px;background:rgba(251,146,60,.1);border:1px solid rgba(251,146,60,.2);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--orange)">Sparse K1/K2 tables</div>
+            <div style="padding:4px 8px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--purple)">embed_tokens 601 MB</div>
+            <div style="padding:4px 8px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.2);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--purple)">lm_head 601 MB</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ BANDWIDTH BUS ═══ -->
+      <div style="display:flex;align-items:center;gap:8px;margin:12px 0;padding:6px 12px;background:linear-gradient(90deg,rgba(248,113,113,.1),rgba(251,191,36,.1));border-radius:4px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)">↕ Memory Bus</div>
+        <div style="flex:1;height:3px;background:linear-gradient(90deg,var(--red),var(--yellow));border-radius:2px"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--yellow)">~1,792 GB/s bandwidth</div>
+        <div style="flex:1;height:3px;background:linear-gradient(90deg,var(--yellow),var(--red));border-radius:2px"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)">BOTTLENECK for batch=1 decode ↕</div>
+      </div>
+
+      <!-- ═══ GPU DIE (L2 + SMs) ═══ -->
+      <div style="border:3px solid var(--yellow);border-radius:12px;padding:16px;padding-top:20px;margin-top:8px;background:rgba(251,191,36,.02);position:relative">
+        <div style="position:absolute;top:-14px;left:24px;background:var(--bg2);padding:0 12px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--yellow);z-index:2">GPU DIE</div>
+
+        <!-- L2 Cache -->
+        <div style="border:2px solid var(--yellow);border-radius:8px;padding:12px;background:rgba(251,191,36,.04);margin-bottom:12px;position:relative">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--yellow);margin-bottom:8px">L2 Cache — ~96 MB @ ~12 TB/s</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            <div style="padding:4px 8px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--yellow)">h vector [4096] 8 KB</div>
+            <div style="padding:4px 8px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--yellow)">RMSNorm weights 8 KB ea.</div>
+            <div style="padding:4px 8px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--yellow)">MLP intermediate 64 KB</div>
+            <div style="padding:4px 8px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--yellow)">ALiBi slopes 128 B</div>
+            <div style="padding:4px 8px;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.25);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--yellow)">RoPE sin/cos ~2 KB</div>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-top:6px">Shared across all SMs. Holds frequently-accessed small data. 6.7× faster than GDDR7.</div>
+        </div>
+
+        <!-- GPC / SM Grid -->
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);margin-bottom:6px">~170 Streaming Multiprocessors (SMs), grouped into ~12 GPCs:</div>
+
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
+
+          <!-- SM 0 (detailed) -->
+          <div style="border:2px solid var(--green);border-radius:8px;padding:10px;background:rgba(74,222,128,.03);grid-column:span 3;grid-row:span 2">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px">SM (Streaming Multiprocessor) — detailed view</div>
+            
+            <!-- Registers -->
+            <div style="border:2px solid var(--cyan);border-radius:6px;padding:10px;background:rgba(34,211,238,.03);margin-bottom:8px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--cyan);margin-bottom:6px">Registers — 256 KB per SM @ INSTANT</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)">FASTEST memory in the GPU. Each thread has its own.</div>
+              <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:6px">
+                <div style="padding:3px 6px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.25);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan)">GEMM operands</div>
+                <div style="padding:3px 6px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.25);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan)">SiLU(x)=x·σ(x)</div>
+                <div style="padding:3px 6px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.25);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan)">sigmoid gate</div>
+                <div style="padding:3px 6px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.25);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan)">RoPE rotation</div>
+                <div style="padding:3px 6px;background:rgba(34,211,238,.12);border:1px solid rgba(34,211,238,.25);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--cyan)">0.08839 0.24749</div>
+              </div>
+            </div>
+
+            <!-- L1 / Shared Memory -->
+            <div style="border:2px solid var(--green);border-radius:6px;padding:10px;background:rgba(74,222,128,.03);margin-bottom:8px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--green);margin-bottom:6px">Shared Memory / L1 — 128 KB per SM @ ~19 TB/s</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)">Programmer-controlled scratchpad. Shared by all threads in a block.</div>
+              <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:6px">
+                <div style="padding:3px 6px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green)">GEMM tiles 128×128</div>
+                <div style="padding:3px 6px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green)">FlashAttn softmax accum</div>
+                <div style="padding:3px 6px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green)">GLA state [128×128] 32KB</div>
+                <div style="padding:3px 6px;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.25);border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--green)">QK norm weights 256B</div>
+              </div>
+            </div>
+
+            <!-- Compute units inside SM -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+              <div style="border:1px solid rgba(251,146,60,.3);border-radius:5px;padding:8px;background:rgba(251,146,60,.04);text-align:center">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:var(--orange)">Tensor Cores</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);margin-top:4px">4th gen<br>BF16 matrix multiply<br>All GEMMs run here</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">
+                  <div style="height:10px;background:rgba(251,146,60,.25);border-radius:2px"></div>
+                  <div style="height:10px;background:rgba(251,146,60,.25);border-radius:2px"></div>
+                  <div style="height:10px;background:rgba(251,146,60,.25);border-radius:2px"></div>
+                  <div style="height:10px;background:rgba(251,146,60,.25);border-radius:2px"></div>
+                </div>
+              </div>
+              <div style="border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:8px;background:rgba(96,165,250,.04);text-align:center">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:var(--blue)">CUDA Cores</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);margin-top:4px">128 FP32 cores<br>RMSNorm, softmax<br>SiLU, sigmoid, RoPE</div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:4px">
+                  <div style="height:6px;background:rgba(96,165,250,.25);border-radius:1px"></div>
+                  <div style="height:6px;background:rgba(96,165,250,.25);border-radius:1px"></div>
+                  <div style="height:6px;background:rgba(96,165,250,.25);border-radius:1px"></div>
+                  <div style="height:6px;background:rgba(96,165,250,.25);border-radius:1px"></div>
+                  <div style="height:6px;background:rgba(96,165,250,.2);border-radius:1px"></div>
+                  <div style="height:6px;background:rgba(96,165,250,.2);border-radius:1px"></div>
+                  <div style="height:6px;background:rgba(96,165,250,.2);border-radius:1px"></div>
+                  <div style="height:6px;background:rgba(96,165,250,.2);border-radius:1px"></div>
+                </div>
+              </div>
+              <div style="border:1px solid rgba(45,212,191,.3);border-radius:5px;padding:8px;background:rgba(45,212,191,.04);text-align:center">
+                <div style="font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:var(--teal)">Special Func</div>
+                <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3);margin-top:4px">SFU units<br>exp(), rsqrt()<br>for softmax, norms</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">
+                  <div style="height:8px;background:rgba(45,212,191,.25);border-radius:2px"></div>
+                  <div style="height:8px;background:rgba(45,212,191,.25);border-radius:2px"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Warp scheduler -->
+            <div style="margin-top:8px;padding:6px 10px;background:rgba(244,114,182,.05);border:1px solid rgba(244,114,182,.2);border-radius:4px;display:flex;align-items:center;gap:8px">
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;color:var(--pink)">Warp Schedulers ×4</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3)">Each manages 32 threads. Issue instructions to tensor/CUDA cores every cycle.</div>
+            </div>
+          </div>
+
+          <!-- Compact SM representations -->
+          <div style="border:1px solid rgba(74,222,128,.2);border-radius:6px;padding:8px;background:rgba(74,222,128,.02);text-align:center">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);font-weight:600">SM 1</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">
+              <div style="height:8px;background:rgba(251,146,60,.2);border-radius:2px" title="Tensor Cores"></div>
+              <div style="height:8px;background:rgba(96,165,250,.2);border-radius:2px" title="CUDA Cores"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--text3);margin-top:2px">REG 256K<br>L1 128K</div>
+          </div>
+          <div style="border:1px solid rgba(74,222,128,.2);border-radius:6px;padding:8px;background:rgba(74,222,128,.02);text-align:center">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);font-weight:600">SM 2</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">
+              <div style="height:8px;background:rgba(251,146,60,.2);border-radius:2px"></div>
+              <div style="height:8px;background:rgba(96,165,250,.2);border-radius:2px"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--text3);margin-top:2px">REG 256K<br>L1 128K</div>
+          </div>
+          <div style="border:1px solid rgba(74,222,128,.2);border-radius:6px;padding:8px;background:rgba(74,222,128,.02);text-align:center">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);font-weight:600">SM 3</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">
+              <div style="height:8px;background:rgba(251,146,60,.2);border-radius:2px"></div>
+              <div style="height:8px;background:rgba(96,165,250,.2);border-radius:2px"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--text3);margin-top:2px">REG 256K<br>L1 128K</div>
+          </div>
+          <div style="border:1px solid rgba(74,222,128,.15);border-radius:6px;padding:8px;background:rgba(74,222,128,.01);text-align:center">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)">SM 4</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">
+              <div style="height:8px;background:rgba(251,146,60,.12);border-radius:2px"></div>
+              <div style="height:8px;background:rgba(96,165,250,.12);border-radius:2px"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--text3);margin-top:2px">REG 256K<br>L1 128K</div>
+          </div>
+          <div style="border:1px solid rgba(74,222,128,.15);border-radius:6px;padding:8px;background:rgba(74,222,128,.01);text-align:center">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3)">SM 5</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:4px">
+              <div style="height:8px;background:rgba(251,146,60,.12);border-radius:2px"></div>
+              <div style="height:8px;background:rgba(96,165,250,.12);border-radius:2px"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--text3);margin-top:2px">REG 256K<br>L1 128K</div>
+          </div>
+          <div style="border:1px solid rgba(74,222,128,.15);border-radius:6px;padding:8px;background:rgba(74,222,128,.01);text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3)">…</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--text3)">~170 SMs<br>total</div>
+          </div>
+        </div>
+
+        <!-- Other on-die blocks -->
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <div style="padding:6px 12px;background:rgba(244,114,182,.06);border:1px solid rgba(244,114,182,.2);border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--pink)">GigaThread Engine<br><span style="font-size:7px;color:var(--text3)">Distributes kernel blocks to SMs</span></div>
+          <div style="padding:6px 12px;background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.2);border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--purple)">Memory Controllers<br><span style="font-size:7px;color:var(--text3)">Drive the GDDR7 bus</span></div>
+          <div style="padding:6px 12px;background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.2);border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--blue)">PCIe Gen5 ×16<br><span style="font-size:7px;color:var(--text3)">CPU ↔ GPU data transfer</span></div>
+          <div style="padding:6px 12px;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.2);border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--teal)">Video Decode<br><span style="font-size:7px;color:var(--text3)">(unused for LLM)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Speed hierarchy summary -->
+  <div style="margin-top:24px">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px">Memory Hierarchy — Speed vs Capacity Tradeoff:</div>
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:80px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan);text-align:right;font-weight:600">Registers</div>
+        <div style="flex:1;height:20px;background:var(--bg4);border-radius:4px;overflow:hidden;position:relative">
+          <div style="width:100%;height:100%;background:linear-gradient(90deg,rgba(34,211,238,.4),rgba(34,211,238,.15));border-radius:4px"></div>
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--cyan);font-weight:600">~∞ TB/s (instant) — 256 KB/SM × ~170 = ~43 MB total</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:80px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);text-align:right;font-weight:600">L1/SHMEM</div>
+        <div style="flex:1;height:20px;background:var(--bg4);border-radius:4px;overflow:hidden;position:relative">
+          <div style="width:75%;height:100%;background:linear-gradient(90deg,rgba(74,222,128,.4),rgba(74,222,128,.15));border-radius:4px"></div>
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green);font-weight:600">~19 TB/s — 128 KB/SM × ~170 = ~21.8 MB total</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:80px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow);text-align:right;font-weight:600">L2 Cache</div>
+        <div style="flex:1;height:20px;background:var(--bg4);border-radius:4px;overflow:hidden;position:relative">
+          <div style="width:40%;height:100%;background:linear-gradient(90deg,rgba(251,191,36,.4),rgba(251,191,36,.15));border-radius:4px"></div>
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--yellow);font-weight:600">~12 TB/s — 96 MB shared across all SMs</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:80px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);text-align:right;font-weight:600">GDDR7</div>
+        <div style="flex:1;height:20px;background:var(--bg4);border-radius:4px;overflow:hidden;position:relative">
+          <div style="width:7%;height:100%;background:linear-gradient(90deg,rgba(248,113,113,.4),rgba(248,113,113,.15));border-radius:4px"></div>
+          <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--red);font-weight:600">~1.8 TB/s — 32 GB off-chip</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text3);margin-top:8px">
+      At batch=1 decode, every GEMM is a [1,N]×[N,M] vector-matrix multiply. The weight matrix (N×M) must stream from GDDR7 at 1.8 TB/s.
+      <b style="color:var(--red)">The GPU has 419 TFLOPS of compute but can only feed it ~1.8 TB/s of data → arithmetic intensity is ~0.01 → 99%+ of time waiting for memory.</b>
+    </div>
+  </div>
+</div>
+
+<!-- Detail tables -->
+<div class="wb">
+  <h4>What Lives Where — Detailed</h4>
+
+  <div class="ml" style="border-color:var(--red);background:rgba(248,113,113,.03)">
+    <h5 style="color:var(--red)">🔴 GDDR7 / HBM — 32 GB @ ~1,792 GB/s</h5>
+    <table class="tbl"><tbody>
+      <tr><td>All model weights</td><td style="color:var(--yellow)">18.95 GB</td><td>Every GEMM streams from here</td></tr>
+      <tr><td>KV cache (8 minicpm4 layers)</td><td style="color:var(--yellow)">8 KB/token × seq_len</td><td>k_buffer + v_buffer in MHATokenToKVPool</td></tr>
+      <tr><td>GLA states (24 lightning layers)</td><td style="color:var(--yellow)">24 MB/request</td><td>mamba_pool.temporal — read+write per layer</td></tr>
+      <tr><td>Compressed K1/K2 tables</td><td style="color:var(--yellow)">variable</td><td>req_to_sparse_k1_token / k2_token</td></tr>
+      <tr><td>Embedding + LM head</td><td style="color:var(--yellow)">1.2 GB</td><td>Two separate 601MB tables</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="ml" style="border-color:var(--yellow);background:rgba(251,191,36,.03);margin-top:12px">
+    <h5 style="color:var(--yellow)">🟡 L2 Cache — ~96 MB @ ~12 TB/s</h5>
+    <table class="tbl"><tbody>
+      <tr><td>Hidden state h [4096] bf16</td><td>8 KB — stays hot between ops</td></tr>
+      <tr><td>RMSNorm weights (all ~66 norms)</td><td>8 KB each — frequently accessed</td></tr>
+      <tr><td>MLP intermediate [32768]</td><td>64 KB — short-lived</td></tr>
+      <tr><td>ALiBi slope table g_gamma [32]</td><td>128 bytes — always cached</td></tr>
+      <tr><td>RoPE sin/cos tables</td><td>~2 KB — precomputed</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="ml" style="border-color:var(--green);background:rgba(74,222,128,.03);margin-top:12px">
+    <h5 style="color:var(--green)">🟢 Shared Memory / L1 — 128 KB per SM</h5>
+    <table class="tbl"><tbody>
+      <tr><td>GEMM weight tiles (tensor cores)</td><td>128×128 or 64×256 tiles from HBM</td></tr>
+      <tr><td>FlashAttention partial max/sum</td><td>Online softmax accumulators</td></tr>
+      <tr><td>GLA per-head state during update</td><td>[128×128] = 32KB fits in SHMEM</td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="ml" style="border-color:var(--cyan);background:rgba(34,211,238,.03);margin-top:12px">
+    <h5 style="color:var(--cyan)">🔵 Registers — 256 KB per SM</h5>
+    <table class="tbl"><tbody>
+      <tr><td>Tensor core operands</td><td>Current GEMM fragment</td></tr>
+      <tr><td>SiLU, sigmoid, RoPE</td><td>All element-wise in registers</td></tr>
+      <tr><td>Constants: 0.08839, 0.24749, 12, 16</td><td>Scaling factors</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<!-- Latency table -->
+<div class="wb">
+  <h4>Per-Token Decode Bandwidth (Batch=1, 4K ctx)</h4>
+  <table class="tbl">
+    <thead><tr><th>Operation</th><th>HBM Read</th><th>Est. Time</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr style="background:rgba(248,113,113,.03)"><td colspan="4" style="color:var(--red);font-weight:600">minicpm4 layer (×8)</td></tr>
+      <tr><td>&nbsp;&nbsp;QKV proj</td><td>36 MB</td><td>0.020 ms</td><td><span class="chip ch">HBM</span></td></tr>
+      <tr><td>&nbsp;&nbsp;Softmax attn (4K ctx)</td><td>4 MB KV</td><td>0.003 ms</td><td><span class="chip ch">HBM</span></td></tr>
+      <tr><td>&nbsp;&nbsp;o_gate + o_proj</td><td>64 MB</td><td>0.036 ms</td><td><span class="chip ch">HBM</span></td></tr>
+      <tr><td>&nbsp;&nbsp;MLP (gate+up+down)</td><td>384 MB</td><td>0.214 ms</td><td><span class="chip ch">HBM</span></td></tr>
+      <tr style="background:var(--bg4)"><td><b>&nbsp;&nbsp;Total</b></td><td><b>~488 MB</b></td><td><b>~0.28 ms</b></td><td></td></tr>
+      <tr style="background:rgba(34,211,238,.03)"><td colspan="4" style="color:var(--cyan);font-weight:600">lightning layer (×24)</td></tr>
+      <tr><td>&nbsp;&nbsp;QKV proj</td><td>96 MB</td><td>0.054 ms</td><td><span class="chip ch">HBM</span></td></tr>
+      <tr><td>&nbsp;&nbsp;GLA recurrence (state R/W)</td><td>2 MB</td><td>0.001 ms</td><td><span class="chip ch">HBM</span></td></tr>
+      <tr><td>&nbsp;&nbsp;z_proj + o_proj</td><td>64 MB</td><td>0.036 ms</td><td><span class="chip ch">HBM</span></td></tr>
+      <tr><td>&nbsp;&nbsp;MLP (gate+up+down)</td><td>384 MB</td><td>0.214 ms</td><td><span class="chip ch">HBM</span></td></tr>
+      <tr style="background:var(--bg4)"><td><b>&nbsp;&nbsp;Total</b></td><td><b>~546 MB</b></td><td><b>~0.31 ms</b></td><td></td></tr>
+      <tr><td>Embed + LM head + norms</td><td>~602 MB</td><td>~0.34 ms</td><td><span class="chip ch">HBM</span></td></tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:20px;padding:16px;background:var(--bg3);border:1px solid var(--border2);border-radius:8px">
+    <div class="f">
+      <span class="n">8</span>×<span class="n">0.28</span> + <span class="n">24</span>×<span class="n">0.31</span> + <span class="n">0.34</span> ≈ <span class="g" style="font-size:16px;font-weight:700">10.0 ms/token → ~100 tok/s</span> <span class="c">// theoretical max, batch=1, RTX PRO</span>
+    </div>
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SOAR COMPETITION ANGLES -->
+<!-- ═══════════════════════════════════════ -->
+<div class="sl" style="background:rgba(251,146,60,.1);color:var(--orange)">SOAR Competition</div>
+<div class="st">Optimization Landscape</div>
+<div class="sd">Key bottlenecks and optimization opportunities based on the codebase analysis. The contest scores 40% on max-concurrent=1 (latency), 30% on max-concurrent=8, and 30% on unlimited concurrency.</div>
+
+<div class="wb">
+  <h4>Where Time is Spent (Batch=1 Decode)</h4>
+  <div style="display:flex;gap:4px;height:32px;border-radius:4px;overflow:hidden;margin-bottom:16px">
+    <div style="flex:67.9;background:rgba(74,222,128,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green)">MLP 67.9%</div>
+    <div style="flex:11.3;background:rgba(34,211,238,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--cyan)">QKV 11.3%</div>
+    <div style="flex:9.9;background:rgba(248,113,113,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red)">Gate+O 9.9%</div>
+    <div style="flex:6.3;background:rgba(167,139,250,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--purple)">LM head 6.3%</div>
+    <div style="flex:4.6;background:rgba(251,191,36,.3);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--yellow)">&lt;5%</div>
+  </div>
+  <div style="font-size:12px;color:var(--text2)">At batch=1, weight streaming dominates. MLP alone reads 384MB × 32 layers = 12.29 GB per token.</div>
+</div>
+
+<div class="wb">
+  <h4>Optimization Vectors</h4>
+  <table class="tbl">
+    <thead><tr><th>Technique</th><th>Impact</th><th>Key Files</th></tr></thead>
+    <tbody>
+      <tr><td style="color:var(--yellow)"><b>W4A16 Quantization (GPTQ/Marlin)</b></td><td>~2× weight size reduction → ~2× decode speedup. MLP and proj weights go from 18.95GB → ~9.5GB.</td><td>gptq.py, marlin CUDA kernels</td></tr>
+      <tr><td style="color:var(--yellow)"><b>FP8 KV Cache</b></td><td>Halves KV cache memory → more concurrent requests → better throughput. Only helps minicpm4 layers (8 of 32).</td><td>kv_cache.py, server_args <code>--kv-cache-dtype fp8_e5m2</code></td></tr>
+      <tr><td style="color:var(--green)"><b>Kernel Fusion (MLP)</b></td><td>Fuse gate_up+SiLU+down or overlap weight loads. MLP is 67.9% of time.</td><td>minicpm_sala.py MiniCPMMLP</td></tr>
+      <tr><td style="color:var(--cyan)"><b>GLA Kernel Optimization</b></td><td>fused_recurrent_simple_gla runs 24× per token. BV=8 (min) — room to tune tile sizes.</td><td>fla/fused_recurrent.py, hybrid_linear_attn_backend.py</td></tr>
+      <tr><td style="color:var(--red)"><b>Sparse Attention Kernel</b></td><td>infllmv2_attn_stage1 + max_pooling_1d_varlen are custom CUDA — profile for bottlenecks on long ctx.</td><td>infllmv2_sparse_attention.py, minicpm_sparse_utils.py</td></tr>
+      <tr><td style="color:var(--purple)"><b>Chunked Prefill Tuning</b></td><td>Default <code>--chunked-prefill-size 32768</code>. Tune for concurrency profile. GLA uses chunk_size=64 internally.</td><td>server_args, chunk.py (FLA_CHUNK_SIZE)</td></tr>
+      <tr><td style="color:var(--orange)"><b>CUDA Graph</b></td><td>Reduces kernel launch overhead for decode. Already supported but <code>--disable-cuda-graph</code> may be set for stability.</td><td>FlashAttentionBackend CUDA graph methods</td></tr>
+      <tr><td style="color:var(--blue)"><b>Speculative Decoding (EAGLE3)</b></td><td>Multi-token prediction. Main challenge: lightning layers' recurrent state doesn't support tree verification natively.</td><td>hybrid_linear_attn_backend.py (is_target_verify handling)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="wb">
+  <h4>Input Distribution (Speed Benchmark)</h4>
+  <div class="g2">
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">Input Length</div>
+      <div style="display:flex;gap:4px;height:24px;border-radius:4px;overflow:hidden">
+        <div style="flex:25;background:rgba(74,222,128,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--green);font-family:'JetBrains Mono',monospace">0-4K 25%</div>
+        <div style="flex:10;background:rgba(251,191,36,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--yellow);font-family:'JetBrains Mono',monospace">4-16K</div>
+        <div style="flex:15;background:rgba(251,146,60,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--orange);font-family:'JetBrains Mono',monospace">16-32K</div>
+        <div style="flex:35;background:rgba(248,113,113,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--red);font-family:'JetBrains Mono',monospace">32-128K 35%</div>
+        <div style="flex:15;background:rgba(167,139,250,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--purple);font-family:'JetBrains Mono',monospace">128-160K</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">50% of inputs exceed 32K → sparse attention is critical</div>
+    </div>
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px">Output Length</div>
+      <div style="display:flex;gap:4px;height:24px;border-radius:4px;overflow:hidden">
+        <div style="flex:35;background:rgba(74,222,128,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--green);font-family:'JetBrains Mono',monospace">0-512 35%</div>
+        <div style="flex:25;background:rgba(251,191,36,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--yellow);font-family:'JetBrains Mono',monospace">512-2K 25%</div>
+        <div style="flex:10;background:rgba(251,146,60,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--orange);font-family:'JetBrains Mono',monospace">2-4K</div>
+        <div style="flex:15;background:rgba(248,113,113,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--red);font-family:'JetBrains Mono',monospace">4-16K</div>
+        <div style="flex:15;background:rgba(167,139,250,.3);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--purple);font-family:'JetBrains Mono',monospace">16-32K</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">30% outputs &gt; 4K → decode throughput matters heavily</div>
+    </div>
+  </div>
+</div>
+
+<hr class="div">
+
+<!-- ═══════════════════════════════════════ -->
+<!-- COMPLETE PARAMETER INVENTORY -->
+<!-- ═══════════════════════════════════════ -->
+<div class="sl" style="background:rgba(244,114,182,.1);color:var(--pink)">All Numbers</div>
+<div class="st">Complete Reference</div>
+
+<div class="wb">
+  <h4>All Constants</h4>
+  <div class="g2">
+    <table class="tbl">
+      <thead><tr><th>Scaling Factor</th><th>Value</th><th>Used In</th></tr></thead>
+      <tbody>
+        <tr><td>scale_emb</td><td style="color:var(--yellow)">12</td><td>After embedding lookup</td></tr>
+        <tr><td>scale_depth/√layers</td><td style="color:var(--yellow)">0.24749</td><td>Every residual connection</td></tr>
+        <tr><td>scale_width</td><td style="color:var(--yellow)">16</td><td>Before lm_head (4096/256)</td></tr>
+        <tr><td>attn scale</td><td style="color:var(--yellow)">0.08839</td><td>1/√128, both attn types</td></tr>
+        <tr><td>rope_theta</td><td style="color:var(--yellow)">10,000</td><td>Lightning layers only</td></tr>
+        <tr><td>rms_norm_eps</td><td style="color:var(--yellow)">1e-6</td><td>All RMSNorm</td></tr>
+      </tbody>
+    </table>
+    <table class="tbl">
+      <thead><tr><th>Architecture</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>hidden_size</td><td style="color:var(--pink)">4,096</td></tr>
+        <tr><td>intermediate_size</td><td style="color:var(--pink)">16,384</td></tr>
+        <tr><td>num_hidden_layers</td><td style="color:var(--pink)">32</td></tr>
+        <tr><td>num_attention_heads</td><td style="color:var(--pink)">32</td></tr>
+        <tr><td>num_key_value_heads (minicpm4)</td><td style="color:var(--pink)">2</td></tr>
+        <tr><td>lightning_nkv</td><td style="color:var(--pink)">32</td></tr>
+        <tr><td>head_dim</td><td style="color:var(--pink)">128</td></tr>
+        <tr><td>vocab_size</td><td style="color:var(--pink)">73,448</td></tr>
+        <tr><td>max_position_embeddings</td><td style="color:var(--pink)">524,288</td></tr>
+        <tr><td>tie_word_embeddings</td><td style="color:var(--pink)">false</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="wb">
+  <h4>Complete Parameter Count (sorted by %)</h4>
+  <table class="tbl">
+    <thead><tr><th>Component</th><th>Total Params</th><th>%</th><th>BF16</th></tr></thead>
+    <tbody>
+      <tr><td style="color:var(--green)">mlp.gate_proj (×32)</td><td style="color:var(--yellow)">2,147,483,648</td><td>22.66%</td><td>4.0 GB</td></tr>
+      <tr><td style="color:var(--green)">mlp.up_proj (×32)</td><td style="color:var(--yellow)">2,147,483,648</td><td>22.66%</td><td>4.0 GB</td></tr>
+      <tr><td style="color:var(--green)">mlp.down_proj (×32)</td><td style="color:var(--yellow)">2,147,483,648</td><td>22.66%</td><td>4.0 GB</td></tr>
+      <tr><td>self_attn.q_proj (×32)</td><td style="color:var(--yellow)">536,870,912</td><td>5.66%</td><td>1.0 GB</td></tr>
+      <tr><td>self_attn.o_proj (×32)</td><td style="color:var(--yellow)">536,870,912</td><td>5.66%</td><td>1.0 GB</td></tr>
+      <tr><td>self_attn.k_proj (×32)</td><td style="color:var(--yellow)">411,041,792</td><td>4.34%</td><td>0.77 GB</td></tr>
+      <tr><td>self_attn.v_proj (×32)</td><td style="color:var(--yellow)">411,041,792</td><td>4.34%</td><td>0.77 GB</td></tr>
+      <tr><td style="color:var(--cyan)">self_attn.z_proj (×24 lightning)</td><td style="color:var(--yellow)">402,653,184</td><td>4.25%</td><td>0.75 GB</td></tr>
+      <tr><td style="color:var(--purple)">embed_tokens</td><td style="color:var(--yellow)">300,843,008</td><td>3.17%</td><td>601 MB</td></tr>
+      <tr><td style="color:var(--purple)">lm_head</td><td style="color:var(--yellow)">300,843,008</td><td>3.17%</td><td>601 MB</td></tr>
+      <tr><td style="color:var(--red)">self_attn.o_gate (×8 minicpm4)</td><td style="color:var(--yellow)">134,217,728</td><td>1.42%</td><td>256 MB</td></tr>
+      <tr><td>All norms</td><td>~370K</td><td>~0.00%</td><td>~740 KB</td></tr>
+      <tr style="background:var(--bg4)"><td><b>TOTAL</b></td><td style="color:var(--cyan);font-weight:700">9,477,203,968</td><td>100%</td><td style="color:var(--yellow);font-weight:700">18.95 GB</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="padding:32px 0;text-align:center;color:var(--text3);font-size:11px;font-family:'JetBrains Mono',monospace">
+  MiniCPM-SALA Blueprint &bull; Built from config.json + minicpm_sala.py + hybrid_linear_attn_backend.py + flashattention_backend.py + infllmv2_sparse_attention.py + minicpm_sparse_utils.py + memory_pool.py + fused_recurrent.py + chunk.py + forward_batch_info.py
+</div>
+
+</div>
+
+<script>
+const types=["minicpm4","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","minicpm4","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","minicpm4","minicpm4","lightning-attn","lightning-attn","lightning-attn","lightning-attn","minicpm4","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","lightning-attn","minicpm4","minicpm4","minicpm4"];
+const s=document.getElementById('layerStrip');
+types.forEach((t,i)=>{const e=document.createElement('div');e.className='lc '+(t==='minicpm4'?'mc':'la');e.textContent=i;e.title=`Layer ${i}: ${t}`;s.appendChild(e)});
+</script>
+</body>
+</html>
