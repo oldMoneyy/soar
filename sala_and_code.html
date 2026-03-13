@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MiniCPM-SALA 模型架构可视化 (含源码)</title>
+<title>MiniCPM-SALA Model Architecture Visualization (with Source Code)</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #0a0e1a; color: #e0e0e0; font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px; }
@@ -89,17 +89,17 @@ h2 { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 13px; font
 </head>
 <body>
 
-<h1>MiniCPM-SALA 9.48B 模型架构全景</h1>
-<h2>每个方块面积精确正比于参数量 | 总参数: 9,477,203,968 | 含对应源码</h2>
+<h1>MiniCPM-SALA 9.48B Model Architecture Overview</h1>
+<h2>Area of each block is strictly proportional to parameter count | Total Parameters: 9,477,203,968 | Includes corresponding source code</h2>
 
 <div id="tooltip" class="tooltip"></div>
 
 <div class="section">
   <div class="stats-grid">
-    <div class="stat-card"><div class="title">总参数量</div><div class="value">9,477,203,968</div><div class="detail">bf16: 17.65 GiB | W4A16: ~4.41 GiB</div></div>
-    <div class="stat-card"><div class="title">Lightning 层 ⚡ (线性注意力)</div><div class="value" id="stat-lightning">6,845,405,184</div><div class="detail">24 层 × 285,225,216 | 72.2% 参数</div></div>
-    <div class="stat-card"><div class="title">MiniCPM4 层 🔍 (稀疏注意力)</div><div class="value" id="stat-minicpm4">2,030,108,672</div><div class="detail">8 层 × 253,763,584 | 21.4% 参数</div></div>
-    <div class="stat-card"><div class="title">非层参数</div><div class="value">601,690,112</div><div class="detail">embed + lm_head + norm | 6.3%</div></div>
+    <div class="stat-card"><div class="title">Total Parameters</div><div class="value">9,477,203,968</div><div class="detail">bf16: 17.65 GiB | W4A16: ~4.41 GiB</div></div>
+    <div class="stat-card"><div class="title">Lightning Layers ⚡ (Linear Attention)</div><div class="value" id="stat-lightning">6,845,405,184</div><div class="detail">24 Layers × 285,225,216 | 72.2% of Parameters</div></div>
+    <div class="stat-card"><div class="title">MiniCPM4 Layers 🔍 (Sparse Attention)</div><div class="value" id="stat-minicpm4">2,030,108,672</div><div class="detail">8 Layers × 253,763,584 | 21.4% of Parameters</div></div>
+    <div class="stat-card"><div class="title">Non-Layer Parameters</div><div class="value">601,690,112</div><div class="detail">embed + lm_head + norm | 6.3%</div></div>
   </div>
 </div>
 
@@ -107,30 +107,30 @@ h2 { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 13px; font
 <!-- SECTION: Full Forward Flow with Code -->
 <!-- ============================================================ -->
 <div class="section">
-  <div class="section-title">1. 完整 Forward 流程（左: 计算流 + 参数量 | 右: 对应源码）</div>
+  <div class="section-title">1. Complete Forward Flow (Left: Compute Flow & Parameters | Right: Source Code)</div>
 
   <!-- Global pre/post -->
   <div class="flow-card" style="border-color: #e74c3c44;">
     <div class="flow-card-header" style="background:#1a1020; color:#e74c3c;">
-      入口 & 出口（非层参数）
+      Entry & Exit (Non-Layer Parameters)
       <span style="font-size:11px; color:#888; font-weight:normal;">601,690,112 params (6.3%)</span>
     </div>
-    <div class="col-header"><span>计算流程 & 参数量</span><span>对应源码 (minicpm.py)</span></div>
+    <div class="col-header"><span>Compute Flow & Parameters</span><span>Source Code (minicpm.py)</span></div>
     <div class="flow-card-body">
       <div class="step">
         <div class="step-left">
           <div class="step-name"><span style="color:#e74c3c;">●</span> embed_tokens</div>
-          <div class="step-dim">token_id → [4096] 向量 | 查表 73,448 × 4,096</div>
+          <div class="step-dim">token_id → [4096] vector | Lookup table 73,448 × 4,096</div>
           <div class="step-params">300,843,008 params (573.0 MiB)</div>
           <div class="step-bar" style="width:50%; background:#e74c3c;"></div>
         </div>
         <div class="step-right">
           <div class="code"><span class="cmt"># MiniCPMModel.forward()</span>
 <span class="var">hidden_states</span> = self.<span class="fn">embed_tokens</span>(input_ids) * self.config.<span class="var">scale_emb</span>
-<span class="cmt"># scale_emb = 12 (config.json 里的常数, 不是参数)</span></div>
+<span class="cmt"># scale_emb = 12 (constant in config.json, not a parameter)</span></div>
         </div>
       </div>
-      <div class="arrow">↓ 经过 32 层 Decoder Layer ↓</div>
+      <div class="arrow">↓ Processed through 32 Decoder Layers ↓</div>
       <div class="step">
         <div class="step-left">
           <div class="step-name"><span style="color:#16a085;">●</span> model.norm</div>
@@ -154,7 +154,7 @@ h2 { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 13px; font
 <span class="var">hidden_states</span> = hidden_states / self.<span class="var">scale_width</span>
 <span class="cmt"># scale_width = hidden_size / dim_model_base = 4096/256 = 16</span>
 <span class="kw">return</span> self.<span class="fn">logits_processor</span>(input_ids, hidden_states, self.<span class="fn">lm_head</span>, forward_batch)
-<span class="cmt"># → softmax → top-k/sampling → 下一个 token</span></div>
+<span class="cmt"># → softmax → top-k/sampling → next token</span></div>
         </div>
       </div>
     </div>
@@ -163,13 +163,13 @@ h2 { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 13px; font
   <!-- Decoder Layer shell -->
   <div class="flow-card" style="border-color:#2a3050;">
     <div class="flow-card-header" style="background:#0f1520; color:#aaa;">
-      每个 Decoder Layer 的外壳（32层共享结构）
+      Decoder Layer Wrapper (Shared structure across 32 layers)
       <span style="font-size:11px; color:#888; font-weight:normal;">MiniCPMDecoderLayer.forward()</span>
     </div>
     <div class="flow-card-body">
       <div class="step">
         <div class="step-left">
-          <div class="step-dim" style="color:#aaa;">残差连接 + 缩放的结构</div>
+          <div class="step-dim" style="color:#aaa;">Residual connection + Scaling structure</div>
         </div>
         <div class="step-right">
           <div class="code"><span class="cmt"># MiniCPMDecoderLayer.forward()</span>
@@ -177,7 +177,7 @@ h2 { text-align: center; color: #aaa; margin-bottom: 20px; font-size: 13px; font
 hidden_states = self.<span class="fn">input_layernorm</span>(hidden_states)
 hidden_states = self.<span class="fn">self_attn</span>(positions, hidden_states, forward_batch)
 hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.<span class="fn">sqrt</span>(<span class="num">32</span>))
-<span class="cmt"># scale_depth=1.4, num_hidden_layers=32 → 系数 ≈ 0.2475</span>
+<span class="cmt"># scale_depth=1.4, num_hidden_layers=32 → coefficient ≈ 0.2475</span>
 
 <span class="var">residual</span> = hidden_states
 hidden_states = self.<span class="fn">post_attention_layernorm</span>(hidden_states)
@@ -193,10 +193,10 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
     <div class="flow-col">
       <div class="flow-card" style="border-color:#4a90d9;">
         <div class="flow-card-header" style="background:#0f1828; color:#4a90d9;">
-          ⚡ Lightning 层 (线性注意力) — 24层
-          <span style="font-size:11px; color:#888; font-weight:normal;">285,225,216 params/层 | 共 6,845,405,184</span>
+          ⚡ Lightning Layers (Linear Attention) — 24 Layers
+          <span style="font-size:11px; color:#888; font-weight:normal;">285,225,216 params/layer | Total 6,845,405,184</span>
         </div>
-        <div class="col-header"><span>计算流程 & 参数量</span><span>对应源码 (MiniCPMLightningMixer)</span></div>
+        <div class="col-header"><span>Compute Flow & Parameters</span><span>Source Code (MiniCPMLightningMixer)</span></div>
         <div class="flow-card-body">
 
           <div class="step">
@@ -212,9 +212,9 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
 
           <div class="step">
             <div class="step-left">
-              <div class="step-name"><span style="color:#4a90d9;">●</span> qkv_proj <span style="font-size:10px;color:#ff7b72;">← 最大GEMM!</span></div>
+              <div class="step-name"><span style="color:#4a90d9;">●</span> qkv_proj <span style="font-size:10px;color:#ff7b72;">← Largest GEMM!</span></div>
               <div class="step-dim">[4096] → [12288] = Q(4096)+K(4096)+V(4096)</div>
-              <div class="step-dim">32 Q头 × 128dim + 32 KV头 × 128dim × 2</div>
+              <div class="step-dim">32 Q heads × 128 dim + 32 KV heads × 128 dim × 2</div>
               <div class="step-params">50,331,648 params (96.0 MiB) 🔥</div>
               <div class="step-bar" style="width:100%; background:#4a90d9;"></div>
             </div>
@@ -240,39 +240,39 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
 
           <div class="step">
             <div class="step-left">
-              <div class="step-name"><span style="color:#888;">○</span> RoPE (无参数)</div>
-              <div class="step-dim">旋转位置编码, 你已优化去掉 fp32 upcast</div>
-              <div class="step-params">0 params (config常数)</div>
+              <div class="step-name"><span style="color:#888;">○</span> RoPE (No params)</div>
+              <div class="step-dim">Rotary Position Embedding, fp32 upcast optimized out</div>
+              <div class="step-params">0 params (config constant)</div>
             </div>
             <div class="step-right">
-              <div class="code"><span class="cmt"># 你的优化: 去掉了 q.float(), k.float()</span>
+              <div class="code"><span class="cmt"># Optimization applied: Removed q.float(), k.float()</span>
 <span class="cmt"># orig_dtype = q.dtype</span>
-<span class="cmt"># q, k = q.float(), k.float()  ← 删掉了</span>
+<span class="cmt"># q, k = q.float(), k.float()  ← Removed</span>
 <span class="var">q, k</span> = self.<span class="fn">rotary_emb</span>(positions, q, k)
-<span class="cmt"># q, k = q.to(orig_dtype), k.to(orig_dtype)  ← 删掉了</span></div>
+<span class="cmt"># q, k = q.to(orig_dtype), k.to(orig_dtype)  ← Removed</span></div>
             </div>
           </div>
 
           <div class="step">
             <div class="step-left">
-              <div class="step-name"><span style="color:#888;">○</span> SimpleGLA Kernel (无权重参数)</div>
-              <div class="step-dim">递推 State: (32, 128, 128) = 每请求 1.0 MiB/层</div>
-              <div class="step-dim">decay: ALiBi slopes, 固定不可学习</div>
-              <div class="step-params">0 可学习参数 | State 不存在 safetensors 里</div>
+              <div class="step-name"><span style="color:#888;">○</span> SimpleGLA Kernel (No weight parameters)</div>
+              <div class="step-dim">Recurrent State: (32, 128, 128) = 1.0 MiB/layer per request</div>
+              <div class="step-dim">decay: ALiBi slopes, fixed and non-learnable</div>
+              <div class="step-params">0 learnable params | State is not stored in safetensors</div>
             </div>
             <div class="step-right">
               <div class="code"><span class="cmt"># SimpleGLAAttnBackend.forward()</span>
 <span class="var">mode</span> = <span class="str">"fused_recurrent"</span> <span class="kw">if</span> seq_len < <span class="num">64</span> <span class="kw">else</span> <span class="str">"chunk"</span>
 
-<span class="kw">if</span> mode == <span class="str">"fused_recurrent"</span>:  <span class="cmt"># decode / 短序列</span>
+<span class="kw">if</span> mode == <span class="str">"fused_recurrent"</span>:  <span class="cmt"># decode / short sequences</span>
     <span class="var">o</span>, final = <span class="fn">fused_recurrent_simple_gla</span>(
         q, k, v, g_gamma=<span class="var">self.g_gamma</span>,  <span class="cmt"># ALiBi slopes</span>
         scale=<span class="var">self.scale</span>,  <span class="cmt"># 1/√128 = 0.0884</span>
         initial_state=initial_state, ...)
-<span class="kw">else</span>:  <span class="cmt"># 长 prefill</span>
+<span class="kw">else</span>:  <span class="cmt"># long prefill</span>
     <span class="var">o</span>, final = <span class="fn">chunk_simple_gla</span>(
         q, k, v, g_gamma=<span class="var">self.g_gamma</span>, ...)
-<span class="cmt"># 核心递推: S = decay × S + k⊗v, o = q × S</span></div>
+<span class="cmt"># Core recurrence: S = decay × S + k⊗v, o = q × S</span></div>
             </div>
           </div>
 
@@ -295,7 +295,7 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
               <div class="step-bar" style="width:33%; background:#9b59b6;"></div>
             </div>
             <div class="step-right">
-              <div class="code"><span class="var">z</span>, _ = self.<span class="fn">z_proj</span>(hidden_states)  <span class="cmt"># 注意用原始 hidden!</span>
+              <div class="code"><span class="var">z</span>, _ = self.<span class="fn">z_proj</span>(hidden_states)  <span class="cmt"># Note: Uses original hidden_states!</span>
 <span class="var">o</span> = o * F.<span class="fn">sigmoid</span>(z)</div>
             </div>
           </div>
@@ -313,7 +313,7 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
             </div>
           </div>
 
-          <div class="arrow">↓ 残差 + 缩放 ↓</div>
+          <div class="arrow">↓ Residual + Scaling ↓</div>
 
           <div class="step">
             <div class="step-left">
@@ -335,10 +335,10 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
             </div>
             <div class="step-right">
               <div class="code"><span class="cmt"># MiniCPMMLP.forward()</span>
-<span class="var">gate_up</span>, _ = self.<span class="fn">gate_up_proj</span>(x)  <span class="cmt"># 合并: [gate|up]</span>
+<span class="var">gate_up</span>, _ = self.<span class="fn">gate_up_proj</span>(x)  <span class="cmt"># Merged: [gate|up]</span>
 <span class="var">x</span> = self.<span class="fn">act_fn</span>(gate_up)
-<span class="cmt"># SiluAndMul: gate部分过SiLU, 乘以up部分
-# output dim = 16384 (半分)</span></div>
+<span class="cmt"># SiluAndMul: gate portion passes through SiLU, multiplied by up portion
+# output dim = 16384 (halved)</span></div>
             </div>
           </div>
 
@@ -363,10 +363,10 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
     <div class="flow-col">
       <div class="flow-card" style="border-color:#e74c3c;">
         <div class="flow-card-header" style="background:#1a1018; color:#e74c3c;">
-          🔍 MiniCPM4 层 (稀疏注意力) — 8层
-          <span style="font-size:11px; color:#888; font-weight:normal;">253,763,584 params/层 | 共 2,030,108,672</span>
+          🔍 MiniCPM4 Layers (Sparse Attention) — 8 Layers
+          <span style="font-size:11px; color:#888; font-weight:normal;">253,763,584 params/layer | Total 2,030,108,672</span>
         </div>
-        <div class="col-header"><span>计算流程 & 参数量</span><span>对应源码 (MiniCPMAttention)</span></div>
+        <div class="col-header"><span>Compute Flow & Parameters</span><span>Source Code (MiniCPMAttention)</span></div>
         <div class="flow-card-body">
 
           <div class="step">
@@ -382,56 +382,56 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
 
           <div class="step">
             <div class="step-left">
-              <div class="step-name"><span style="color:#4a90d9;">●</span> qkv_proj <span style="font-size:10px;color:#888;">(比 lightning 小!)</span></div>
+              <div class="step-name"><span style="color:#4a90d9;">●</span> qkv_proj <span style="font-size:10px;color:#888;">(Smaller than Lightning!)</span></div>
               <div class="step-dim">[4096] → [4608] = Q(4096)+K(256)+V(256)</div>
-              <div class="step-dim">32 Q头 × 128dim + <b>2</b> KV头 × 128dim × 2</div>
+              <div class="step-dim">32 Q heads × 128 dim + <b>2</b> KV heads × 128 dim × 2</div>
               <div class="step-params">18,874,368 params (36.0 MiB)</div>
               <div class="step-bar" style="width:37%; background:#4a90d9;"></div>
             </div>
             <div class="step-right">
               <div class="code"><span class="var">qkv</span>, _ = self.<span class="fn">qkv_proj</span>(hidden_states)
 <span class="var">q, k, v</span> = qkv.<span class="fn">split</span>([<span class="num">4096</span>, <span class="num">256</span>, <span class="num">256</span>], dim=-<span class="num">1</span>)
-<span class="cmt"># GQA: 32 Q heads, 只有 2 KV heads
-# KV Cache 很小!</span></div>
+<span class="cmt"># GQA: 32 Q heads, only 2 KV heads
+# KV Cache is extremely small!</span></div>
             </div>
           </div>
 
           <div class="step">
             <div class="step-left">
-              <div class="step-name"><span style="color:#888;">○</span> ❌ 无 RoPE, 无 qk_norm</div>
+              <div class="step-name"><span style="color:#888;">○</span> ❌ No RoPE, No qk_norm</div>
               <div class="step-dim">attn_use_rope = false in config.json</div>
               <div class="step-params">0 params</div>
             </div>
             <div class="step-right">
               <div class="code"><span class="cmt"># config.json: "attn_use_rope": false
-# 所以 minicpm4 层跳过 RoPE
-# 也没有 qk_norm</span>
-<span class="kw">if</span> self.attn_use_rope:  <span class="cmt"># False → 跳过</span>
+# Thus minicpm4 layers skip RoPE
+# Also no qk_norm</span>
+<span class="kw">if</span> self.attn_use_rope:  <span class="cmt"># False → Skipped</span>
     q, k = self.rotary_emb(positions, q, k)</div>
             </div>
           </div>
 
           <div class="step">
             <div class="step-left">
-              <div class="step-name"><span style="color:#888;">○</span> RadixAttention (标准 softmax)</div>
-              <div class="step-dim">FlashInfer kernel | 需要 KV Cache</div>
-              <div class="step-dim">KV Cache: 2头 × 128dim × 2(K+V) × 2B = 1 KiB/token/层</div>
-              <div class="step-params">0 可学习参数 | KV Cache 在显存另算</div>
+              <div class="step-name"><span style="color:#888;">○</span> RadixAttention (Standard softmax)</div>
+              <div class="step-dim">FlashInfer kernel | Requires KV Cache</div>
+              <div class="step-dim">KV Cache: 2 heads × 128 dim × 2(K+V) × 2B = 1 KiB/token/layer</div>
+              <div class="step-params">0 learnable params | KV Cache memory allocated separately</div>
             </div>
             <div class="step-right">
               <div class="code"><span class="var">attn_output</span> = self.<span class="fn">attn</span>(q, k, v, forward_batch)
 <span class="cmt"># RadixAttention → FlashInfer
-# Decode: 读 KV Cache, 计算 softmax attention
-# Prefill ctx≤8192: 全注意力
-# Prefill ctx>8192: 稀疏注意力
+# Decode: Read KV Cache, compute softmax attention
+# Prefill ctx≤8192: Dense attention
+# Prefill ctx>8192: Sparse attention
 #   window=2048, topk=64 blocks×64 = 4096
-#   每 token 最多看 6144 个 token</span></div>
+#   Each token attends to at most 6144 tokens</span></div>
             </div>
           </div>
 
           <div class="step">
             <div class="step-left">
-              <div class="step-name"><span style="color:#7c5cbf;">●</span> o_gate (注意不是 z_proj!)</div>
+              <div class="step-name"><span style="color:#7c5cbf;">●</span> o_gate (Note: Not z_proj!)</div>
               <div class="step-dim">[4096] → [4096] → sigmoid → × attn_output</div>
               <div class="step-params">16,777,216 params (32.0 MiB)</div>
               <div class="step-bar" style="width:33%; background:#7c5cbf;"></div>
@@ -439,8 +439,8 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
             <div class="step-right">
               <div class="code"><span class="var">o_gate_output</span>, _ = self.<span class="fn">o_gate</span>(hidden_states)
 <span class="var">attn_output</span> = attn_output * F.<span class="fn">sigmoid</span>(o_gate_output)
-<span class="cmt"># 和 lightning 的 z_proj 功能一样
-# 但命名不同: o_gate vs z_proj</span></div>
+<span class="cmt"># Functions identical to z_proj in Lightning
+# But named differently: o_gate vs z_proj</span></div>
             </div>
           </div>
 
@@ -457,7 +457,7 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
             </div>
           </div>
 
-          <div class="arrow">↓ 残差 + 缩放 ↓</div>
+          <div class="arrow">↓ Residual + Scaling ↓</div>
 
           <div class="step">
             <div class="step-left">
@@ -473,12 +473,12 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
           <div class="step">
             <div class="step-left">
               <div class="step-name"><span style="color:#e67e22;">●</span> MLP: gate_up_proj</div>
-              <div class="step-dim">[4096] → [32768] (与 lightning 完全相同)</div>
+              <div class="step-dim">[4096] → [32768] (Identical to Lightning layer)</div>
               <div class="step-params">134,217,728 params (256.0 MiB) 🔥</div>
               <div class="step-bar" style="width:100%; background:#e67e22;"></div>
             </div>
             <div class="step-right">
-              <div class="code"><span class="cmt"># MLP 和 lightning 层完全一样</span>
+              <div class="code"><span class="cmt"># MLP is identical to Lightning layers</span>
 <span class="var">gate_up</span>, _ = self.<span class="fn">gate_up_proj</span>(x)
 <span class="var">x</span> = self.<span class="fn">act_fn</span>(gate_up)</div>
             </div>
@@ -500,16 +500,16 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
           <div class="step" style="background:#1a101800;">
             <div class="step-left">
               <div class="step-dim" style="color:#666; padding:5px 0;">
-                ⚠️ minicpm4 比 lightning 少 31,461,632 params/层<br>
-                差异来自: qkv_proj (2 vs 32 KV头) 少 31,457,280<br>
-                加上少了 q_norm/k_norm/o_norm, 多了无参数差异
+                ⚠️ minicpm4 has 31,461,632 fewer params/layer than Lightning<br>
+                Difference stems from: qkv_proj (2 vs 32 KV heads) saves 31,457,280<br>
+                Plus omission of q_norm/k_norm/o_norm, matching the exact param delta
               </div>
             </div>
             <div class="step-right">
-              <div class="code"><span class="cmt"># 参数差异:
+              <div class="code"><span class="cmt"># Parameter difference:
 # lightning qkv: 4096×12288 = 50,331,648
 # minicpm4  qkv: 4096×4608  = 18,874,368
-# 差: 31,457,280 (几乎全部差异)</span></div>
+# Diff: 31,457,280 (Accounts for almost the entire difference)</span></div>
             </div>
           </div>
 
@@ -523,7 +523,7 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
 <!-- SECTION: Treemap -->
 <!-- ============================================================ -->
 <div class="section">
-  <div class="section-title">2. 全模型参数 Treemap（面积 = 参数量, 悬停看详情）</div>
+  <div class="section-title">2. Full Model Parameter Treemap (Area = Parameter Count, Hover for Details)</div>
   <div id="treemap" class="treemap-container"></div>
   <div class="legend" id="legend"></div>
 </div>
@@ -532,7 +532,7 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
 <!-- SECTION: Layer bars -->
 <!-- ============================================================ -->
 <div class="section">
-  <div class="section-title">3. 逐层参数量对比</div>
+  <div class="section-title">3. Layer-by-Layer Parameter Comparison</div>
   <div id="layer-bars"></div>
   <div class="legend" id="legend2" style="margin-top:8px;"></div>
 </div>
@@ -541,7 +541,7 @@ hidden_states = residual + hidden_states * (<span class="num">1.4</span> / math.
 <!-- SECTION: Memory -->
 <!-- ============================================================ -->
 <div class="section">
-  <div class="section-title">4. 显存占用 — 不同 Context Length (单请求)</div>
+  <div class="section-title">4. VRAM Usage — Various Context Lengths (Single Request)</div>
   <div id="mem-chart"></div>
 </div>
 
@@ -564,12 +564,12 @@ function squarify(items,x,y,w,h){const r=[];if(!items.length)return r;const t=it
 function lay(items,total,x,y,w,h,rects){if(!items.length)return;if(items.length===1){rects.push({...items[0],x,y,w,h});return;}const hz=w>=h;let strip=[items[0]],st=items[0].value;for(let i=1;i<items.length;i++){const nt=st+items[i].value,ni=[...strip,items[i]];if(wr(ni,nt,total,hz?h:w,hz?w:h)<=wr(strip,st,total,hz?h:w,hz?w:h)){strip.push(items[i]);st=nt;}else break;}const f=st/total;if(hz){const sw=w*f;let cy=y;for(const it of strip){const ih=h*(it.value/st);rects.push({...it,x,y:cy,w:sw,h:ih});cy+=ih;}lay(items.slice(strip.length),total-st,x+sw,y,w-sw,h,rects);}else{const sh=h*f;let cx=x;for(const it of strip){const iw=w*(it.value/st);rects.push({...it,x:cx,y,w:iw,h:sh});cx+=iw;}lay(items.slice(strip.length),total-st,x,y+sh,w,h-sh,rects);}}
 function wr(items,st,gt,sl,ol){const ss=ol*(st/gt);let worst=0;for(const it of items){const w=ss,h=sl*(it.value/st),r=Math.max(w/h,h/w);worst=Math.max(worst,r);}return worst;}
 
-function renderTM(el,items,w,h){el.style.width=w+'px';el.style.height=h+'px';el.innerHTML='';const rs=squarify(items,0,0,w,h),tt=document.getElementById('tooltip');for(const r of rs){const d=document.createElement('div');d.className='treemap-block';d.style.cssText=`left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:${r.color}`;if(r.w>35&&r.h>22){const l=document.createElement('div');l.className='label';let s=`<div class="name">${r.label||r.name}</div>`;if(r.w>55&&r.h>32)s+=`<div class="params">${fmtN(r.value)}</div>`;l.innerHTML=s;d.appendChild(l);}d.onmouseenter=e=>{tt.style.display='block';tt.innerHTML=`<div class="tt-name">${r.fullName||r.name}</div><div class="tt-params">${fmtE(r.value)} 参数</div><div class="tt-pct">${(r.value/TOTAL_PARAMS*100).toFixed(2)}% | ${fmtB(r.value*2)} bf16</div>${r.desc?'<div class="tt-pct" style="margin-top:4px">'+r.desc+'</div>':''}`};d.onmousemove=e=>{tt.style.left=(e.clientX+15)+'px';tt.style.top=(e.clientY+15)+'px'};d.onmouseleave=()=>tt.style.display='none';el.appendChild(d);}}
+function renderTM(el,items,w,h){el.style.width=w+'px';el.style.height=h+'px';el.innerHTML='';const rs=squarify(items,0,0,w,h),tt=document.getElementById('tooltip');for(const r of rs){const d=document.createElement('div');d.className='treemap-block';d.style.cssText=`left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;background:${r.color}`;if(r.w>35&&r.h>22){const l=document.createElement('div');l.className='label';let s=`<div class="name">${r.label||r.name}</div>`;if(r.w>55&&r.h>32)s+=`<div class="params">${fmtN(r.value)}</div>`;l.innerHTML=s;d.appendChild(l);}d.onmouseenter=e=>{tt.style.display='block';tt.innerHTML=`<div class="tt-name">${r.fullName||r.name}</div><div class="tt-params">${fmtE(r.value)} Parameters</div><div class="tt-pct">${(r.value/TOTAL_PARAMS*100).toFixed(2)}% | ${fmtB(r.value*2)} bf16</div>${r.desc?'<div class="tt-pct" style="margin-top:4px">'+r.desc+'</div>':''}`};d.onmousemove=e=>{tt.style.left=(e.clientX+15)+'px';tt.style.top=(e.clientY+15)+'px'};d.onmouseleave=()=>tt.style.display='none';el.appendChild(d);}}
 
 window.addEventListener('DOMContentLoaded',()=>{
   const items=[];
-  items.push({name:'embed_tokens',label:'embed',fullName:'model.embed_tokens',value:VOCAB*HIDDEN,color:COLORS.embed,desc:'词嵌入查表'});
-  items.push({name:'lm_head',label:'lm_head',fullName:'lm_head',value:VOCAB*HIDDEN,color:COLORS.lm,desc:'输出投影→logits'});
+  items.push({name:'embed_tokens',label:'embed',fullName:'model.embed_tokens',value:VOCAB*HIDDEN,color:COLORS.embed,desc:'Token embedding lookup'});
+  items.push({name:'lm_head',label:'lm_head',fullName:'lm_head',value:VOCAB*HIDDEN,color:COLORS.lm,desc:'Output projection to logits'});
   for(let i=0;i<32;i++){const isL=MIXER_TYPES[i]!=='minicpm4';const cs=isL?lightningParams():minicpm4Params();const t=cs.reduce((s,c)=>s+c.p,0);items.push({name:`L${i}`,label:`L${i} ${isL?'⚡':'🔍'}`,fullName:`Layer ${i} (${isL?'lightning':'minicpm4'})`,value:t,color:isL?`hsl(${210+(i%8)*3},55%,${28+(i%4)*4}%)`:`hsl(${0+(i%8)*5},50%,${28+(i%4)*4}%)`,desc:`${fmtE(t)} params`});}
   renderTM(document.getElementById('treemap'),items,1360,480);
 
@@ -586,9 +586,9 @@ window.addEventListener('DOMContentLoaded',()=>{
   // Memory table
   const ctxs=[1024,4096,8192,16384,32768,65536,131072,163840];
   const kvPT=M4_KV*HEAD_DIM*2*8*2;const stPR=LN_KV*HEAD_DIM*HEAD_DIM*24*2;const wB=TOTAL_PARAMS*2;const w4B=TOTAL_PARAMS/2;
-  let h='<table class="mem-table"><tr><th>Context</th><th>权重(bf16)</th><th>权重(W4)</th><th>KV Cache<br><small>8层×2kv头</small></th><th>State<br><small>24层×(32,128,128)</small></th><th>激活峰值</th><th>总计(bf16)</th><th>总计(W4)</th></tr>';
+  let h='<table class="mem-table"><tr><th>Context</th><th>Weights(bf16)</th><th>Weights(W4)</th><th>KV Cache<br><small>8 layers × 2 KV heads</small></th><th>State<br><small>24 layers × (32,128,128)</small></th><th>Peak Activations</th><th>Total(bf16)</th><th>Total(W4)</th></tr>';
   for(const c of ctxs){const kv=c*kvPT;const act=c*HIDDEN*2*2+c*INTERMEDIATE*2*2;const tb=wB+kv+stPR+act;const tw=w4B+kv+stPR+act;const mx=48*1024**3;h+=`<tr><td style="text-align:left;font-weight:600">${c.toLocaleString()}</td><td>${fmtB(wB)}</td><td>${fmtB(w4B)}</td><td>${fmtB(kv)}</td><td>${fmtB(stPR)}</td><td>~${fmtB(act)}</td><td><span class="bar-in-cell" style="width:${Math.min(tb/mx*100,100)*1.5}px;background:${tb/mx>0.9?'#e74c3c':'#4a90d9'}"></span>${fmtB(tb)}</td><td><span class="bar-in-cell" style="width:${Math.min(tw/mx*100,100)*1.5}px;background:${tw/mx>0.9?'#e74c3c':'#27ae60'}"></span>${fmtB(tw)}</td></tr>`;}
-  h+='</table><div style="font-size:11px;color:#666;margin-top:8px">KV Cache = 2 heads × 128 dim × 2(K+V) × 8 layers × 2 bytes/token | State = 32 heads × 128 × 128 × 24 layers × 2 bytes/请求 (固定!) | 假设 48GB 显存</div>';
+  h+='</table><div style="font-size:11px;color:#666;margin-top:8px">KV Cache = 2 heads × 128 dim × 2(K+V) × 8 layers × 2 bytes/token | State = 32 heads × 128 × 128 × 24 layers × 2 bytes/request (Fixed!) | Assuming 48GB VRAM</div>';
   document.getElementById('mem-chart').innerHTML=h;
 });
 </script>

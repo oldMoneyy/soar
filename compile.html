@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SOAR 编译 & 提交全流程详解</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<title>SOAR Compilation & Submission Full Process Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0e17;
@@ -21,7 +21,7 @@
     --text-bright: #f8fafc;
     --danger: #ef4444;
     --mono: 'JetBrains Mono', monospace;
-    --sans: 'Noto Sans SC', system-ui, sans-serif;
+    --sans: 'Noto Sans', system-ui, sans-serif;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -441,51 +441,51 @@
 
 <!-- Hero -->
 <div class="hero">
-  <h1>SOAR 编译 & 提交全流程</h1>
-  <div class="subtitle">sgl-kernel 从源码到提交的完整链路详解</div>
+  <h1>SOAR Compilation & Submission Full Process</h1>
+  <div class="subtitle">A Complete End-to-End Guide to sgl-kernel: From Source Code to Submission</div>
 </div>
 
 <!-- Overview Stats -->
 <div class="summary-grid">
   <div class="summary-item">
     <div class="num" style="color:var(--accent)">~85</div>
-    <div class="label">csrc/ 下的 .cu/.cpp 源文件</div>
+    <div class="label">.cu/.cpp source files in csrc/</div>
   </div>
   <div class="summary-item">
     <div class="num" style="color:var(--accent2)">150</div>
-    <div class="label">总编译步骤 (含链接 + 安装)</div>
+    <div class="label">Total build steps (incl. linking & install)</div>
   </div>
   <div class="summary-item">
     <div class="num" style="color:var(--accent3)">4</div>
-    <div class="label">最终产物 .so 文件</div>
+    <div class="label">Final .so shared libraries</div>
   </div>
   <div class="summary-item">
     <div class="num" style="color:var(--accent5)">~569 MB</div>
-    <div class="label">.so 总大小 (压缩前)</div>
+    <div class="label">Total .so size (uncompressed)</div>
   </div>
 </div>
 
-<!-- ==================== SECTION 0: 一图流 ==================== -->
+<!-- ==================== SECTION 0: Overview ==================== -->
 <div class="section">
-  <div class="section-label compile">概览</div>
-  <h2>一句话理解整个过程</h2>
-  <div class="desc">把 CUDA 源文件 (.cu) 编译成 GPU 可执行代码 (.so)，打包后提交给比赛平台运行。</div>
+  <div class="section-label compile">Overview</div>
+  <h2>The Entire Process in a Nutshell</h2>
+  <div class="desc">Compile CUDA source files (.cu) into GPU-executable code (.so), package them, and submit to the competition platform for execution.</div>
 
   <div class="pipeline">
     <div class="pipe-row">
       <div>
-        <div class="pipe-label">你写的代码</div>
-        <div class="pipe-box source">.cu / .cpp 源文件</div>
+        <div class="pipe-label">Your Code</div>
+        <div class="pipe-box source">.cu / .cpp source files</div>
       </div>
       <div class="pipe-arrow">→</div>
       <div>
-        <div class="pipe-label">nvcc 编译</div>
-        <div class="pipe-box intermediate">.o 中间目标文件</div>
+        <div class="pipe-label">nvcc Compile</div>
+        <div class="pipe-box intermediate">.o object files</div>
       </div>
       <div class="pipe-arrow">→</div>
       <div>
-        <div class="pipe-label">链接器 (ld)</div>
-        <div class="pipe-box output">.so 共享库</div>
+        <div class="pipe-label">Linker (ld)</div>
+        <div class="pipe-box output">.so shared library</div>
       </div>
       <div class="pipe-arrow">→</div>
       <div>
@@ -494,7 +494,7 @@
       </div>
       <div class="pipe-arrow">→</div>
       <div>
-        <div class="pipe-label">打包提交</div>
+        <div class="pipe-label">Package & Submit</div>
         <div class="pipe-box submit">.tar.gz</div>
       </div>
     </div>
@@ -503,26 +503,26 @@
   <div class="callout info">
     <div class="icon">💡</div>
     <div>
-      <strong>.o 文件只是编译中间产物</strong>，用于增量编译（改一个 .cu 只需重编那一个 .o 再重新链接）。
-      你最终需要的只有 <strong>.so 文件</strong>和 <strong>.py 文件</strong>，不需要打包任何 .o 文件。
+      <strong>.o files are merely intermediate build artifacts</strong> used for incremental compilation (changing one .cu only requires recompiling that specific .o and re-linking).
+      Ultimately, you only need the <strong>.so files</strong> and <strong>.py files</strong>. Do not package any .o files.
     </div>
   </div>
 </div>
 
-<!-- ==================== SECTION 1: 4 个编译目标 ==================== -->
+<!-- ==================== SECTION 1: 4 Build Targets ==================== -->
 <div class="divider"></div>
 <div class="section">
-  <div class="section-label compile">编译目标</div>
-  <h2>CMakeLists.txt 定义了 4 个编译目标 (Target)</h2>
-  <div class="desc">每个 target 将一组源文件编译、链接成一个独立的 .so 共享库。</div>
+  <div class="section-label compile">Build Targets</div>
+  <h2>CMakeLists.txt Defines 4 Build Targets</h2>
+  <div class="desc">Each target compiles and links a set of source files into an independent .so shared library.</div>
 
   <div class="target-grid">
     <div class="target-card t1">
       <div class="target-name" style="color:var(--accent)">common_ops_sm90_build</div>
       <div class="target-output">→ sm90/common_ops.abi3.so</div>
       <div class="target-desc">
-        <strong>最大最核心的 target。</strong>包含绝大部分 CUDA kernel：RMSNorm、RoPE、Attention、GEMM（含 Marlin GPTQ）、MoE、Speculative Decoding、KV Cache I/O、Mamba 等。<br><br>
-        同时编入了外部依赖：FlashInfer (norm/sampling)、Sparse Flash Attention、Fast Hadamard Transform。
+        <strong>The largest and most core target.</strong> Contains the vast majority of CUDA kernels: RMSNorm, RoPE, Attention, GEMM (including Marlin GPTQ), MoE, Speculative Decoding, KV Cache I/O, Mamba, etc.<br><br>
+        It also embeds external dependencies: FlashInfer (norm/sampling), Sparse Flash Attention, and Fast Hadamard Transform.
       </div>
       <div class="target-size">~241 MB</div>
     </div>
@@ -531,7 +531,7 @@
       <div class="target-name" style="color:var(--accent2)">flash_ops</div>
       <div class="target-output">→ flash_ops.abi3.so</div>
       <div class="target-desc">
-        <strong>Flash Attention 3 (Hopper 架构专用)。</strong>每种 dtype (bf16/fp16/fp8) × 每种配置 (paged/split/softcap/packgqa) 都是独立 .cu 文件，所以编译单元特别多。
+        <strong>Flash Attention 3 (Hopper architecture specific).</strong> Every combination of dtype (bf16/fp16/fp8) × configuration (paged/split/softcap/packgqa) is an independent .cu file, resulting in a massive number of compilation units.
       </div>
       <div class="target-size">~321 MB</div>
     </div>
@@ -540,7 +540,7 @@
       <div class="target-name" style="color:var(--accent4)">spatial_ops</div>
       <div class="target-output">→ spatial_ops.abi3.so</div>
       <div class="target-desc">
-        Green context stream 相关功能。只有 2 个源文件，编译很快。
+        Green context stream related functionalities. Only 2 source files, compiles very quickly.
       </div>
       <div class="target-size">~100 KB</div>
     </div>
@@ -549,19 +549,19 @@
       <div class="target-name" style="color:var(--accent5)">flashmla_ops</div>
       <div class="target-output">→ flashmla_ops.abi3.so</div>
       <div class="target-desc">
-        Flash MLA (Multi-head Latent Attention) kernel。来自 cmake/flashmla.cmake。
+        Flash MLA (Multi-head Latent Attention) kernel. Sourced from cmake/flashmla.cmake.
       </div>
       <div class="target-size">~6.5 MB</div>
     </div>
   </div>
 </div>
 
-<!-- ==================== SECTION 2: 150 步详解 ==================== -->
+<!-- ==================== SECTION 2: 150 Steps Breakdown ==================== -->
 <div class="divider"></div>
 <div class="section">
-  <div class="section-label compile">编译步骤</div>
-  <h2>[1/150] → [150/150] 完整分解</h2>
-  <div class="desc">150 步 = 编译 .o + 链接 .so + 安装到 site-packages</div>
+  <div class="section-label compile">Build Steps</div>
+  <h2>Complete Breakdown: [1/150] → [150/150]</h2>
+  <div class="desc">150 steps = Compile .o + Link .so + Install to site-packages</div>
 
   <!-- Common ops -->
   <div style="margin: 24px 0">
@@ -572,28 +572,28 @@
     <div class="progress-bar"><div class="progress-fill" style="width:58%;background:linear-gradient(90deg,var(--accent),var(--accent))"></div></div>
 
     <div class="file-tree">
-<span class="dir">源文件 (csrc/ 下约 85 个):</span>
-<div class="indent"><span class="cu">csrc/elementwise/fused_add_rms_norm_kernel.cu</span>  ← RMSNorm kernel (你遇到的那个错误)</div>
-<div class="indent"><span class="cu">csrc/elementwise/rope.cu</span>                       ← RoPE 旋转位置编码</div>
-<div class="indent"><span class="cu">csrc/elementwise/activation.cu</span>                 ← SiLU/GELU 等激活函数</div>
+<span class="dir">Source files (~85 under csrc/):</span>
+<div class="indent"><span class="cu">csrc/elementwise/fused_add_rms_norm_kernel.cu</span>  ← RMSNorm kernel (Where you encountered the error)</div>
+<div class="indent"><span class="cu">csrc/elementwise/rope.cu</span>                       ← RoPE (Rotary Position Embedding)</div>
+<div class="indent"><span class="cu">csrc/elementwise/activation.cu</span>                 ← SiLU/GELU activation functions</div>
 <div class="indent"><span class="cu">csrc/attention/cascade.cu</span>                      ← Cascade attention</div>
-<div class="indent"><span class="cu">csrc/attention/merge_attn_states.cu</span>            ← 注意力状态合并</div>
-<div class="indent"><span class="cu">csrc/gemm/marlin/gptq_marlin.cu</span>               ← Marlin W4A16 GEMM (量化加速核心)</div>
-<div class="indent"><span class="cu">csrc/gemm/gptq/gptq_kernel.cu</span>                 ← GPTQ 反量化</div>
-<div class="indent"><span class="cu">csrc/gemm/fp8_gemm_kernel.cu</span>                  ← FP8 矩阵乘法</div>
-<div class="indent"><span class="cu">csrc/speculative/eagle_utils.cu</span>               ← EAGLE 投机采样 (树构建+验证)</div>
-<div class="indent"><span class="cu">csrc/speculative/speculative_sampling.cu</span>      ← 投机采样 kernel</div>
-<div class="indent"><span class="cu">csrc/moe/moe_align_kernel.cu</span>                  ← MoE 专家路由</div>
-<div class="indent"><span class="cu">csrc/mamba/causal_conv1d.cu</span>                   ← Mamba 卷积</div>
-<div class="indent"><span class="cu">csrc/common_extension.cc</span>                      ← Python ↔ C++ binding 入口</div>
-<div class="indent">... 等约 85 个文件</div>
+<div class="indent"><span class="cu">csrc/attention/merge_attn_states.cu</span>            ← Attention state merging</div>
+<div class="indent"><span class="cu">csrc/gemm/marlin/gptq_marlin.cu</span>               ← Marlin W4A16 GEMM (Core quantization acceleration)</div>
+<div class="indent"><span class="cu">csrc/gemm/gptq/gptq_kernel.cu</span>                 ← GPTQ dequantization</div>
+<div class="indent"><span class="cu">csrc/gemm/fp8_gemm_kernel.cu</span>                  ← FP8 matrix multiplication</div>
+<div class="indent"><span class="cu">csrc/speculative/eagle_utils.cu</span>               ← EAGLE speculative decoding (tree build + verification)</div>
+<div class="indent"><span class="cu">csrc/speculative/speculative_sampling.cu</span>      ← Speculative sampling kernel</div>
+<div class="indent"><span class="cu">csrc/moe/moe_align_kernel.cu</span>                  ← MoE expert routing</div>
+<div class="indent"><span class="cu">csrc/mamba/causal_conv1d.cu</span>                   ← Mamba convolution</div>
+<div class="indent"><span class="cu">csrc/common_extension.cc</span>                      ← Python ↔ C++ binding entry point</div>
+<div class="indent">... and so on, approx. 85 files</div>
 <br>
-<span class="dir">每个文件经过 nvcc 编译后生成 .o:</span>
+<span class="dir">Each file is compiled by nvcc to generate an .o:</span>
 <div class="indent">build/CMakeFiles/common_ops_sm90_build.dir/csrc/elementwise/fused_add_rms_norm_kernel.cu.o</div>
 <div class="indent">build/CMakeFiles/common_ops_sm90_build.dir/csrc/gemm/marlin/gptq_marlin.cu.o</div>
-<div class="indent">... 约 85 个 .o 文件</div>
+<div class="indent">... approx. 85 .o files</div>
 <br>
-<span class="dir">所有 .o 链接成一个 .so:</span>
+<span class="dir">All .o files are linked into a single .so:</span>
 <div class="indent"><span class="so">build/sm90/common_ops.abi3.so</span>  (~241 MB)</div>
     </div>
   </div>
@@ -603,33 +603,33 @@
     <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:12px">
       <span class="step-range s2">[~88/150] ~ [~127/150]</span>
       <span style="color:var(--accent2)">flash_ops</span>
-      <span style="font-size:0.8rem;color:var(--accent3)">← 你现在在这里 (120/150)</span>
+      <span style="font-size:0.8rem;color:var(--accent3)">← You are currently here (120/150)</span>
     </h3>
     <div class="progress-bar"><div class="progress-fill" style="width:82%;background:linear-gradient(90deg,var(--accent2),var(--accent3))"></div></div>
 
     <div class="file-tree">
-<span class="dir">源文件 (flash-attention/hopper/ 下约 35 个):</span>
-<div class="indent"><span class="cpp">flash-attention/hopper/flash_api.cpp</span>             ← Flash Attention 3 主 API</div>
+<span class="dir">Source files (~35 under flash-attention/hopper/):</span>
+<div class="indent"><span class="cpp">flash-attention/hopper/flash_api.cpp</span>             ← Flash Attention 3 Main API</div>
 <div class="indent"><span class="cu">flash-attention/hopper/flash_prepare_scheduler.cu</span></div>
 <div class="indent"><span class="cu">flash-attention/hopper/flash_fwd_combine.cu</span></div>
 <div class="indent"><span class="cu">flash-attention/hopper/instantiations/</span></div>
-<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_sm90.cu</span>              ← bf16 基础版</div>
-<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_paged_sm90.cu</span>        ← bf16 分页版</div>
-<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_paged_split_sm90.cu</span>  ← bf16 分页+分裂版</div>
-<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_softcap_sm90.cu</span>      ← bf16 softcap 版</div>
-<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_packgqa_sm90.cu</span>      ← bf16 GQA 打包版</div>
-<div class="indent2"><span class="cu">flash_fwd_hdimall_fp16_*.cu</span>                 ← fp16 同样 5-6 个变体</div>
-<div class="indent2"><span class="cu">flash_fwd_hdimall_e4m3_*.cu</span>                 ← fp8 同样 5-6 个变体</div>
-<div class="indent2"><span class="cu">flash_fwd_hdimdiff_*.cu</span>                     ← 不同 head dim 的变体</div>
-<div class="indent">... 总计约 35 个 .cu 文件</div>
+<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_sm90.cu</span>              ← bf16 base version</div>
+<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_paged_sm90.cu</span>        ← bf16 paged version</div>
+<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_paged_split_sm90.cu</span>  ← bf16 paged+split version</div>
+<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_softcap_sm90.cu</span>      ← bf16 softcap version</div>
+<div class="indent2"><span class="cu">flash_fwd_hdimall_bf16_packgqa_sm90.cu</span>      ← bf16 packgqa version</div>
+<div class="indent2"><span class="cu">flash_fwd_hdimall_fp16_*.cu</span>                 ← fp16 (same 5-6 variants)</div>
+<div class="indent2"><span class="cu">flash_fwd_hdimall_e4m3_*.cu</span>                 ← fp8 (same 5-6 variants)</div>
+<div class="indent2"><span class="cu">flash_fwd_hdimdiff_*.cu</span>                     ← variants for different head dims</div>
+<div class="indent">... totaling approx. 35 .cu files</div>
 <br>
-<span class="dir">链接后:</span>
-<div class="indent"><span class="so">build/flash_ops.abi3.so</span>  (~321 MB — 最大的 .so!)</div>
+<span class="dir">After linking:</span>
+<div class="indent"><span class="so">build/flash_ops.abi3.so</span>  (~321 MB — The largest .so!)</div>
     </div>
 
     <div class="callout info">
       <div class="icon">📝</div>
-      <div>flash_ops 这么大是因为每种 dtype × 每种 attention 变体都是独立编译单元。每个 .cu 文件都会被 nvcc 特化为一个高效的 kernel，编译后内嵌了 SASS 机器码 + PTX 中间码。</div>
+      <div>flash_ops is so large because every dtype × attention variant acts as an independent compilation unit. Each .cu file is specialized by nvcc into a highly optimized kernel, embedding both SASS machine code + PTX intermediate representation.</div>
     </div>
   </div>
 
@@ -645,7 +645,7 @@
 <span class="cu">csrc/spatial/greenctx_stream.cu + csrc/spatial_extension.cc</span>
 <div class="indent"><span class="so">→ build/spatial_ops.abi3.so</span>  (~100 KB)</div>
 <br>
-<span class="cu">cmake/flashmla.cmake 定义的源文件</span>
+<span class="cu">Source files defined in cmake/flashmla.cmake</span>
 <div class="indent"><span class="so">→ build/flashmla_ops.abi3.so</span>  (~6.5 MB)</div>
     </div>
   </div>
@@ -654,144 +654,143 @@
   <div style="margin: 24px 0">
     <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:12px">
       <span class="step-range s4">[~136/150] ~ [150/150]</span>
-      <span style="color:var(--accent3)">安装 (cmake install + pip)</span>
+      <span style="color:var(--accent3)">Installation (cmake install + pip)</span>
     </h3>
 
     <div class="file-tree">
-<span class="dir">从 build/ 复制到 site-packages:</span>
+<span class="dir">Copy from build/ to site-packages:</span>
 <br>
 build/sm90/common_ops.abi3.so  <span class="arrow" style="color:#f472b6">→</span>  site-packages/sgl_kernel/sm90/common_ops.abi3.so
 build/flash_ops.abi3.so        <span class="arrow" style="color:#f472b6">→</span>  site-packages/sgl_kernel/flash_ops.abi3.so
 build/spatial_ops.abi3.so      <span class="arrow" style="color:#f472b6">→</span>  site-packages/sgl_kernel/spatial_ops.abi3.so
 build/flashmla_ops.abi3.so     <span class="arrow" style="color:#f472b6">→</span>  site-packages/sgl_kernel/flashmla_ops.abi3.so
 <br>
-<span class="dim">完整路径: /opt/SGLang-MiniCPM-SALA/sglang_minicpm_sala_env/lib/python3.10/site-packages/</span>
+<span class="dim">Full path: /opt/SGLang-MiniCPM-SALA/sglang_minicpm_sala_env/lib/python3.10/site-packages/</span>
     </div>
   </div>
 </div>
 
-<!-- ==================== SECTION 3: 目录对照表 ==================== -->
+<!-- ==================== SECTION 3: Directory Mapping ==================== -->
 <div class="divider"></div>
 <div class="section">
-  <div class="section-label link">路径对照</div>
-  <h2>三个目录的关系</h2>
+  <div class="section-label link">Path Mapping</div>
+  <h2>Relationship Between the Three Directories</h2>
 
   <table class="mapping-table">
     <thead>
       <tr>
-        <th>目录</th>
-        <th>角色</th>
-        <th>内容</th>
-        <th>是否需要打包</th>
+        <th>Directory</th>
+        <th>Role</th>
+        <th>Content</th>
+        <th>Need to Package?</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td class="mono" style="color:var(--accent)">.../sgl-kernel/csrc/</td>
-        <td>源码目录</td>
-        <td>你写/改的 .cu 和 .cpp 文件</td>
-        <td class="dim">❌ 不需要</td>
+        <td>Source Dir</td>
+        <td>The .cu and .cpp files you write/modify</td>
+        <td class="dim">❌ No</td>
       </tr>
       <tr>
         <td class="mono" style="color:var(--accent2)">.../sgl-kernel/build/</td>
-        <td>编译输出</td>
-        <td>.o 中间文件 + 链接后的 .so</td>
-        <td class="dim">❌ 不需要 (仅增量编译用)</td>
+        <td>Build Output</td>
+        <td>.o intermediate files + linked .so libraries</td>
+        <td class="dim">❌ No (For incremental build only)</td>
       </tr>
       <tr>
         <td class="mono" style="color:var(--accent4)">.../site-packages/sgl_kernel/</td>
-        <td>安装目录</td>
-        <td>最终的 .so + .py (Python 运行时加载的位置)</td>
-        <td style="color:var(--accent4);font-weight:700">✅ 从这里取 .so 打包</td>
+        <td>Install Dir</td>
+        <td>Final .so + .py (Where Python loads them at runtime)</td>
+        <td style="color:var(--accent4);font-weight:700">✅ Yes, grab .so from here</td>
       </tr>
       <tr>
         <td class="mono" style="color:var(--accent5)">.../sgl-kernel/python/sgl_kernel/</td>
-        <td>Python 源码</td>
-        <td>.py 文件 (Python wrapper，调用 .so)</td>
-        <td style="color:var(--accent5);font-weight:700">✅ 从这里取 .py 打包</td>
+        <td>Python Source</td>
+        <td>.py files (Python wrapper calling .so)</td>
+        <td style="color:var(--accent5);font-weight:700">✅ Yes, grab .py from here</td>
       </tr>
     </tbody>
   </table>
 </div>
 
-<!-- ==================== SECTION 4: 打包 ==================== -->
+<!-- ==================== SECTION 4: Packaging ==================== -->
 <div class="divider"></div>
 <div class="section">
-  <div class="section-label pack">打包提交</div>
-  <h2>Wheel 打包逻辑</h2>
-  <div class="desc">你的打包脚本从两个地方取文件组装成 .whl：</div>
+  <div class="section-label pack">Package & Submit</div>
+  <h2>Wheel Packaging Logic</h2>
+  <div class="desc">Your packaging script fetches files from two places to assemble the .whl:</div>
 
   <div class="code-block">
-<span class="comment"># 你的打包脚本做了这些事：</span>
+<span class="comment"># What your packaging script does:</span>
 
-<span class="comment"># 1. 从 Python 源码目录取 .py 文件</span>
-<span class="path">/opt/.../sgl-kernel/python/</span><span class="file">sgl_kernel/*.py</span>       <span class="arrow">→</span>  whl 里的 <span class="file">sgl_kernel/*.py</span>
+<span class="comment"># 1. Fetch .py files from Python source directory</span>
+<span class="path">/opt/.../sgl-kernel/python/</span><span class="file">sgl_kernel/*.py</span>       <span class="arrow">→</span>  inside the whl <span class="file">sgl_kernel/*.py</span>
 
-<span class="comment"># 2. 从 site-packages 取编译好的 .so 文件</span>
-<span class="path">/opt/.../site-packages/</span><span class="so">sgl_kernel/sm90/common_ops.abi3.so</span>  <span class="arrow">→</span>  whl 里的 <span class="so">sgl_kernel/sm90/common_ops.abi3.so</span>  <span class="size">(241 MB)</span>
-<span class="path">/opt/.../site-packages/</span><span class="so">sgl_kernel/flash_ops.abi3.so</span>       <span class="arrow">→</span>  whl 里的 <span class="so">sgl_kernel/flash_ops.abi3.so</span>        <span class="size">(321 MB)</span>
-<span class="path">/opt/.../site-packages/</span><span class="so">sgl_kernel/flashmla_ops.abi3.so</span>    <span class="arrow">→</span>  whl 里的 <span class="so">sgl_kernel/flashmla_ops.abi3.so</span>     <span class="size">(6.5 MB)</span>
-<span class="path">/opt/.../site-packages/</span><span class="so">sgl_kernel/spatial_ops.abi3.so</span>     <span class="arrow">→</span>  whl 里的 <span class="so">sgl_kernel/spatial_ops.abi3.so</span>      <span class="size">(100 KB)</span>
+<span class="comment"># 2. Fetch compiled .so files from site-packages</span>
+<span class="path">/opt/.../site-packages/</span><span class="so">sgl_kernel/sm90/common_ops.abi3.so</span>  <span class="arrow">→</span>  inside the whl <span class="so">sgl_kernel/sm90/common_ops.abi3.so</span>  <span class="size">(241 MB)</span>
+<span class="path">/opt/.../site-packages/</span><span class="so">sgl_kernel/flash_ops.abi3.so</span>       <span class="arrow">→</span>  inside the whl <span class="so">sgl_kernel/flash_ops.abi3.so</span>        <span class="size">(321 MB)</span>
+<span class="path">/opt/.../site-packages/</span><span class="so">sgl_kernel/flashmla_ops.abi3.so</span>    <span class="arrow">→</span>  inside the whl <span class="so">sgl_kernel/flashmla_ops.abi3.so</span>     <span class="size">(6.5 MB)</span>
+<span class="path">/opt/.../site-packages/</span><span class="so">sgl_kernel/spatial_ops.abi3.so</span>     <span class="arrow">→</span>  inside the whl <span class="so">sgl_kernel/spatial_ops.abi3.so</span>      <span class="size">(100 KB)</span>
 
-<span class="comment"># 3. 从 site-packages 取 dist-info</span>
+<span class="comment"># 3. Fetch dist-info from site-packages</span>
 <span class="path">/opt/.../site-packages/</span><span class="file">sgl_kernel-0.3.20.dist-info/*</span>
 
-<span class="comment"># 最终产物:</span>
-<span class="so">/opt/submission/sgl_kernel-0.3.20-cp310-abi3-linux_x86_64.whl</span>  <span class="size">(~250 MB 压缩后)</span>
+<span class="comment"># Final Output:</span>
+<span class="so">/opt/submission/sgl_kernel-0.3.20-cp310-abi3-linux_x86_64.whl</span>  <span class="size">(~250 MB compressed)</span>
   </div>
 
   <div class="callout warn">
     <div class="icon">⚠️</div>
     <div>
-      <strong>注意：</strong>打包脚本用 <code style="font-family:var(--mono);font-size:0.82rem">os.walk</code> 遍历 site-packages 下的 sgl_kernel/ 找 <code style="font-family:var(--mono);font-size:0.82rem">.so</code> 文件。
-      确保 flash_ops.abi3.so 和 flashmla_ops.abi3.so 在 sgl_kernel/ 根目录下（不在子目录里），
-      os.walk 能遍历到它们。<br><br>
-      <strong>不要打包 sm100/ 目录</strong>——那个用 symlink 在 prepare_env.sh 里解决。
+      <strong>Note:</strong> The packaging script uses <code style="font-family:var(--mono);font-size:0.82rem">os.walk</code> to traverse sgl_kernel/ under site-packages to find <code style="font-family:var(--mono);font-size:0.82rem">.so</code> files.
+      Ensure flash_ops.abi3.so and flashmla_ops.abi3.so are in the root of the sgl_kernel/ directory (not in subdirectories), so os.walk can find them.<br><br>
+      <strong>Do not package the sm100/ directory</strong> — that is handled via a symlink in prepare_env.sh.
     </div>
   </div>
 </div>
 
-<!-- ==================== SECTION 5: 最终提交包 ==================== -->
+<!-- ==================== SECTION 5: Submission Payload ==================== -->
 <div class="divider"></div>
 <div class="section">
-  <div class="section-label pack">提交包结构</div>
-  <h2>submission.tar.gz 内部</h2>
+  <div class="section-label pack">Submission Payload Structure</div>
+  <h2>Inside submission.tar.gz</h2>
 
   <div class="file-tree">
-<span class="dir">submission.tar.gz 解压后:</span>
-├── <span class="cu">prepare_env.sh</span>                                      ← <strong>必须</strong> 环境构建脚本
-├── <span class="so">sgl_kernel-0.3.20-cp310-abi3-linux_x86_64.whl</span>    ← 你编译的 CUDA kernel
-│   └── (内含 4 个 .so + 所有 .py + dist-info)
-└── <span class="dir">sglang/python/</span>                                     ← 你修改的 sglang Python 源码
+<span class="dir">After extracting submission.tar.gz:</span>
+├── <span class="cu">prepare_env.sh</span>                                      ← <strong>REQUIRED</strong> Environment setup script
+├── <span class="so">sgl_kernel-0.3.20-cp310-abi3-linux_x86_64.whl</span>    ← Your compiled CUDA kernels
+│   └── (Contains 4 .so files + all .py + dist-info)
+└── <span class="dir">sglang/python/</span>                                     ← Your modified sglang Python source code
     └── <span class="dir">sglang/srt/</span>
-        ├── <span class="cu">models/minicpm.py</span>                           ← 模型定义 (如果你改了)
+        ├── <span class="cu">models/minicpm.py</span>                           ← Model definitions (if modified)
         ├── <span class="cu">layers/...</span>
         └── ...
   </div>
 
   <div class="code-block">
-<span class="comment"># prepare_env.sh 内容:</span>
+<span class="comment"># prepare_env.sh contents:</span>
 #!/bin/bash
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-<span class="comment"># 1. 安装你的 sglang Python 代码 (editable mode, 替换镜像内置版本)</span>
+<span class="comment"># 1. Install your sglang Python code (editable mode, replaces image's built-in version)</span>
 uv pip install --no-deps -e "${SCRIPT_DIR}/sglang/python"
 
-<span class="comment"># 2. 安装你编译的 sgl-kernel wheel (替换镜像内置的 .so 文件)</span>
+<span class="comment"># 2. Install your compiled sgl-kernel wheel (replaces built-in .so files)</span>
 uv pip install --force-reinstall --no-deps "${SCRIPT_DIR}/sgl_kernel-0.3.20-cp310-abi3-linux_x86_64.whl"
 
-<span class="comment"># 3. sm120/sm100 架构回退到 sm90 (通过 symlink)</span>
+<span class="comment"># 3. Fallback sm120/sm100 architecture to sm90 (via symlink)</span>
 SGLK_DIR=$(python3 -c "import sgl_kernel; print(sgl_kernel.__path__[0])")
 ln -sf "${SGLK_DIR}/sm90" "${SGLK_DIR}/sm100"
   </div>
 </div>
 
-<!-- ==================== SECTION 6: 比赛平台执行 ==================== -->
+<!-- ==================== SECTION 6: Platform Execution ==================== -->
 <div class="divider"></div>
 <div class="section">
-  <div class="section-label run">平台执行</div>
-  <h2>比赛平台拿到你的 tar.gz 后做了什么</h2>
+  <div class="section-label run">Platform Execution</div>
+  <h2>What the Competition Platform Does With Your tar.gz</h2>
 
   <div class="flow">
     <!-- Step 1 -->
@@ -799,15 +798,15 @@ ln -sf "${SGLK_DIR}/sm90" "${SGLK_DIR}/sm100"
       <div class="flow-dot" style="border-color:var(--accent)"></div>
       <div class="flow-card">
         <h3>
-          ① 启动基础镜像
-          <span class="badge" style="background:rgba(34,211,238,0.15);color:var(--accent)">平台自动</span>
+          ① Boot Base Image
+          <span class="badge" style="background:rgba(34,211,238,0.15);color:var(--accent)">Automated</span>
         </h3>
         <div class="code-block">
-<span class="comment"># 平台启动 docker container，内置了:</span>
+<span class="comment"># Platform boots a docker container, pre-installed with:</span>
 <span class="comment"># - Python 3.10</span>
-<span class="comment"># - 原始 SGLang + sgl-kernel (预编译版本)</span>
+<span class="comment"># - Original SGLang + sgl-kernel (pre-compiled)</span>
 <span class="comment"># - CUDA Toolkit</span>
-<span class="comment"># - 模型挂载在 /models/MiniCPM-SALA</span>
+<span class="comment"># - Model mounted at /models/MiniCPM-SALA</span>
         </div>
       </div>
     </div>
@@ -817,18 +816,18 @@ ln -sf "${SGLK_DIR}/sm90" "${SGLK_DIR}/sm100"
       <div class="flow-dot" style="border-color:var(--accent4)"></div>
       <div class="flow-card">
         <h3>
-          ② 解压 + 执行 prepare_env.sh
-          <span class="badge" style="background:rgba(52,211,153,0.15);color:var(--accent4)">source 执行</span>
+          ② Extract + Execute prepare_env.sh
+          <span class="badge" style="background:rgba(52,211,153,0.15);color:var(--accent4)">Run via source</span>
         </h3>
         <div class="code-block">
-<span class="comment"># 平台解压你的提交</span>
+<span class="comment"># Platform extracts your submission</span>
 tar -xzf submission.tar.gz
 
-<span class="comment"># 用 source 执行 (这样 export 的环境变量会生效)</span>
+<span class="comment"># Execute via source (so exported env vars take effect)</span>
 source ./prepare_env.sh
 
-<span class="comment"># 此时 site-packages 里的 sgl_kernel 已被替换为你编译的版本</span>
-<span class="comment"># sglang Python 代码也已替换为你修改的版本</span>
+<span class="comment"># At this point, sgl_kernel in site-packages is replaced by your compiled version</span>
+<span class="comment"># sglang Python code is also replaced by your modified version</span>
         </div>
       </div>
     </div>
@@ -838,24 +837,24 @@ source ./prepare_env.sh
       <div class="flow-dot" style="border-color:var(--accent2)"></div>
       <div class="flow-card">
         <h3>
-          ③ 启动 SGLang 推理服务
-          <span class="badge" style="background:rgba(167,139,250,0.15);color:var(--accent2)">平台自动</span>
+          ③ Launch SGLang Inference Server
+          <span class="badge" style="background:rgba(167,139,250,0.15);color:var(--accent2)">Automated</span>
         </h3>
         <div class="code-block">
-<span class="comment"># 平台用 SGLANG_SERVER_ARGS 启动服务</span>
+<span class="comment"># Platform launches the server with SGLANG_SERVER_ARGS</span>
 python3 -m sglang.launch_server \
   --model /models/MiniCPM-SALA \
   ${SGLANG_SERVER_ARGS}
 
-<span class="comment"># 启动时 Python 加载链路:</span>
-<span class="comment"># import sglang       → 你的 sglang/python/sglang/ (editable install)</span>
+<span class="comment"># Python loading sequence at startup:</span>
+<span class="comment"># import sglang       → Your sglang/python/sglang/ (editable install)</span>
 <span class="comment"># import sgl_kernel   → site-packages/sgl_kernel/__init__.py</span>
-<span class="comment">#   → load_utils.py 检测 GPU 架构</span>
-<span class="comment">#   → 加载 sm90/common_ops.abi3.so (或通过 sm100 symlink)</span>
-<span class="comment">#   → 加载 flash_ops.abi3.so</span>
-<span class="comment">#   → 加载 flashmla_ops.abi3.so</span>
-<span class="comment">#   → 加载 spatial_ops.abi3.so</span>
-<span class="comment">#   → torch.ops.sgl_kernel.* 注册所有 CUDA kernel</span>
+<span class="comment">#   → load_utils.py detects GPU architecture</span>
+<span class="comment">#   → Loads sm90/common_ops.abi3.so (or via sm100 symlink)</span>
+<span class="comment">#   → Loads flash_ops.abi3.so</span>
+<span class="comment">#   → Loads flashmla_ops.abi3.so</span>
+<span class="comment">#   → Loads spatial_ops.abi3.so</span>
+<span class="comment">#   → torch.ops.sgl_kernel.* registers all CUDA kernels</span>
         </div>
       </div>
     </div>
@@ -865,11 +864,11 @@ python3 -m sglang.launch_server \
       <div class="flow-dot" style="border-color:var(--accent3)"></div>
       <div class="flow-card">
         <h3>
-          ④ 正确性测试
+          ④ Correctness Testing
           <span class="badge" style="background:rgba(244,114,182,0.15);color:var(--accent3)">eval_model.py</span>
         </h3>
         <div class="code-block">
-<span class="comment"># 公开集 + 私有集，准确率必须 > 97% 否则淘汰</span>
+<span class="comment"># Public + Private sets, accuracy must be > 97% or it gets disqualified</span>
 python3 eval_model.py --api_base http://127.0.0.1:30000 ...
         </div>
       </div>
@@ -880,55 +879,55 @@ python3 eval_model.py --api_base http://127.0.0.1:30000 ...
       <div class="flow-dot" style="border-color:var(--accent5)"></div>
       <div class="flow-card">
         <h3>
-          ⑤ 速度测试 (3 档并发)
+          ⑤ Speed Testing (3 Concurrency Levels)
           <span class="badge" style="background:rgba(251,146,44,0.15);color:var(--accent5)">bench_serving.sh</span>
         </h3>
         <div class="code-block">
-<span class="comment"># 测 benchmark_duration，越短越好</span>
---max-concurrent 1    <span class="comment"># 无并发 (权重 40%)</span>
---max-concurrent 8    <span class="comment"># 低并发 (权重 30%)</span>
-不设 --max-concurrent  <span class="comment"># 高并发 (权重 30%)</span>
+<span class="comment"># Measures benchmark_duration, lower is better</span>
+--max-concurrent 1    <span class="comment"># No concurrency (Weight: 40%)</span>
+--max-concurrent 8    <span class="comment"># Low concurrency (Weight: 30%)</span>
+No --max-concurrent   <span class="comment"># High concurrency (Weight: 30%)</span>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ==================== SECTION 7: 增量编译 ==================== -->
+<!-- ==================== SECTION 7: Incremental Compilation ==================== -->
 <div class="divider"></div>
 <div class="section">
-  <div class="section-label compile">增量编译</div>
-  <h2>为什么要保留 build/ 目录</h2>
-  <div class="desc">build/ 目录里的 .o 文件让你不用每次都从头编译所有 150 个文件。</div>
+  <div class="section-label compile">Incremental Compilation</div>
+  <h2>Why You Should Keep the build/ Directory</h2>
+  <div class="desc">The .o files in the build/ directory save you from recompiling all 150 files from scratch every time.</div>
 
   <div class="code-block">
-<span class="comment"># 场景：你只修改了 csrc/elementwise/fused_add_rms_norm_kernel.cu</span>
+<span class="comment"># Scenario: You only modified csrc/elementwise/fused_add_rms_norm_kernel.cu</span>
 
-<span class="comment"># 有 build/ 目录 (增量编译):</span>
-<span class="highlight">[1/150] Building CUDA: fused_add_rms_norm_kernel.cu.o</span>   <span class="comment">← 只重编这 1 个 .o</span>
-<span class="highlight">[2/150] Linking: sm90/common_ops.abi3.so</span>               <span class="comment">← 重新链接 (用旧的 84 个 .o + 新的 1 个 .o)</span>
-<span class="comment"># 耗时: ~3-5 分钟</span>
+<span class="comment"># With build/ directory (Incremental compile):</span>
+<span class="highlight">[1/150] Building CUDA: fused_add_rms_norm_kernel.cu.o</span>   <span class="comment">← Only recompiles this 1 .o file</span>
+<span class="highlight">[2/150] Linking: sm90/common_ops.abi3.so</span>               <span class="comment">← Re-links (using 84 old .o files + 1 new .o)</span>
+<span class="comment"># Time taken: ~3-5 minutes</span>
 
-<span class="comment"># 没有 build/ 目录 (全量编译):</span>
-[1/150] ~ [150/150]   <span class="comment">← 全部重来</span>
-<span class="comment"># 耗时: ~2-4 小时</span>
+<span class="comment"># Without build/ directory (Full compile):</span>
+[1/150] ~ [150/150]   <span class="comment">← Starts completely from scratch</span>
+<span class="comment"># Time taken: ~2-4 hours</span>
   </div>
 
   <div class="callout success">
     <div class="icon">💾</div>
     <div>
-      <strong>所以一定要备份 build/ 目录！</strong><br>
+      <strong>Therefore, ALWAYS backup your build/ directory!</strong><br>
       <code style="font-family:var(--mono);font-size:0.82rem">tar -czf /opt/sgl_kernel_build_backup.tar.gz -C .../sgl-kernel build/</code><br>
-      这样即使环境出问题，恢复后只需增量编译改过的文件。
+      This way, even if the environment breaks, restoring it will only require incrementally recompiling the modified files.
     </div>
   </div>
 </div>
 
-<!-- ==================== SECTION 8: 关于 "no kernel image" ==================== -->
+<!-- ==================== SECTION 8: "No kernel image" ==================== -->
 <div class="divider"></div>
 <div class="section">
-  <div class="section-label run">常见问题</div>
-  <h2>"no kernel image is available" 错误解析</h2>
+  <div class="section-label run">Troubleshooting</div>
+  <h2>Resolving "no kernel image is available" Error</h2>
 
   <div class="callout danger">
     <div class="icon">🔴</div>
@@ -937,31 +936,31 @@ python3 eval_model.py --api_base http://127.0.0.1:30000 ...
     </div>
   </div>
 
-  <div class="desc">这个错误的含义：.so 文件里没有当前 GPU 能执行的代码。</div>
+  <div class="desc">What this error means: The .so file does not contain executable code for the current GPU.</div>
 
   <div class="code-block">
-<span class="comment"># .so 文件内部可以包含两种东西：</span>
+<span class="comment"># The .so file can contain two types of code:</span>
 
-<span class="highlight">SASS (机器码)</span>  ← 特定架构专用，直接执行，最快
-  例: sm_90 的 SASS 只能在 sm_90 GPU 上跑
+<span class="highlight">SASS (Machine Code)</span>  ← Architecture-specific, direct execution, fastest
+  Example: sm_90 SASS can only run on sm_90 GPUs
 
-<span class="highlight">PTX (中间码)</span>   ← 通用，运行时 JIT 编译成当前架构的 SASS
-  例: compute_90a 的 PTX 可以在 sm_90, sm_100, sm_120 上 JIT
+<span class="highlight">PTX (Intermediate Code)</span> ← Universal, JIT compiled to current architecture's SASS at runtime
+  Example: compute_90a PTX can be JIT compiled on sm_90, sm_100, sm_120
 
-<span class="comment"># 你的 CMakeLists.txt 编译参数：</span>
--gencode=arch=compute_90,code=sm_90       <span class="comment"># 嵌入 sm_90 SASS</span>
--gencode=arch=compute_90a,code=compute_90a <span class="comment"># 嵌入 compute_90a PTX ← 这个是关键!</span>
+<span class="comment"># Your CMakeLists.txt compile arguments:</span>
+-gencode=arch=compute_90,code=sm_90       <span class="comment"># Embeds sm_90 SASS</span>
+-gencode=arch=compute_90a,code=compute_90a <span class="comment"># Embeds compute_90a PTX ← THIS IS KEY!</span>
 
-<span class="comment"># 有了 PTX，在任何 >= sm_90 的 GPU 上都能 JIT 运行</span>
-<span class="comment"># 你的 5090 (sm_120) ✅  比赛平台 (RTX PRO, 大概也是 Blackwell) ✅</span>
+<span class="comment"># With PTX, it can be JIT executed on any >= sm_90 GPU</span>
+<span class="comment"># Your 5090 (sm_120) ✅ Competition Platform (RTX PRO, likely also Blackwell) ✅</span>
   </div>
 
   <div class="callout info">
     <div class="icon">🔍</div>
     <div>
-      编译完后用这个命令验证 .so 里有 PTX：<br>
+      After compiling, use this command to verify the .so contains PTX:<br>
       <code style="font-family:var(--mono);font-size:0.82rem">cuobjdump -lptx site-packages/sgl_kernel/sm90/common_ops.abi3.so | head</code><br>
-      如果输出里看到 <code style="font-family:var(--mono);font-size:0.82rem">compute_90a</code>，就说明没问题。
+      If you see <code style="font-family:var(--mono);font-size:0.82rem">compute_90a</code> in the output, it means everything is correct.
     </div>
   </div>
 </div>
