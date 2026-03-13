@@ -372,6 +372,30 @@ footer { text-align:center; padding:60px 32px 40px; border-top:1px solid var(--b
       <tr><td>Total projection ops (N tokens)</td><td class="cr">Σ(P+i) × 3 = O(N²)</td><td class="cg">P×3 + N×3 = O(N)</td></tr>
     </tbody>
   </table>
+  <div class="callout orange" style="margin-top:24px;">
+    <strong>Deriving the numbers — Without Cache (65,700):</strong><br><br>
+    Your prompt is P=10 tokens and you generate N=200 tokens. Each step projects Q, K, and V (×3) for the <em>entire</em> sequence so far:<br><br>
+    <span style="font-family:var(--mono);font-size:12px;color:var(--text);">
+    Step 0: seq_len = 10 → 10 × 3 = 30 projections<br>
+    Step 1: seq_len = 11 → 11 × 3 = 33 projections<br>
+    Step 2: seq_len = 12 → 12 × 3 = 36 projections<br>
+    &ensp; ⋮<br>
+    Step 199: seq_len = 209 → 209 × 3 = 627 projections<br><br>
+    </span>
+    Total = 3 × <em>Σ</em>(i=0 to 199) (10 + i) = 3 × (10 + 11 + 12 + … + 209)<br>
+    &emsp;&emsp;&ensp; = 3 × <sup>200 × (10 + 209)</sup>⁄<sub>2</sub> = 3 × <sup>200 × 219</sup>⁄<sub>2</sub> = 3 × 21,900 = <span style="color:var(--red);font-weight:600;">65,700</span>
+  </div>
+
+  <div class="callout green" style="margin-top:12px;">
+    <strong>Deriving the numbers — With Cache (627):</strong><br><br>
+    <span style="font-family:var(--mono);font-size:12px;color:var(--text);">
+    Prefill:&ensp; process all 10 prompt tokens once → 10 × 3 = 30 projections<br>
+    Decode:&ensp; 199 steps × 1 new token each × 3 = 199 × 3 = 597 projections<br><br>
+    </span>
+    Total = 30 + 597 = <span style="color:var(--green);font-weight:600;">627</span><br><br>
+    That's it — the cache means you never re-project old tokens. The ratio is 65,700 / 627 ≈ <span style="color:var(--orange);font-weight:600;">104.8×</span> fewer projection operations.
+  </div>
+
   <div class="perf-grid">
     <div class="perf-card"><h4>Without Cache</h4><div class="perf-val" id="pv-no">0</div><div class="perf-unit">total token-projections</div></div>
     <div class="perf-card"><h4>With Cache</h4><div class="perf-val" id="pv-yes">0</div><div class="perf-unit">total token-projections</div></div>
